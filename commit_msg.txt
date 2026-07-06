@@ -1,3 +1,3 @@
-Fix Vercel Python deps — switch to psycopg2-binary for compatibility
+Lazy DB engine — avoid cold-start timeout on Vercel
 
 Co-authored-by: CommandCodeBot <noreply@commandcode.ai>

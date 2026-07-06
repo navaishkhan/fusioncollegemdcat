@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings
 from app.core.rate_limit import RateLimitMiddleware
-from app.database import Base, engine
+from app.database import Base, get_engine
 from app.routers import admin, auth, batches, health, parent, questions, tests
 
 app = FastAPI(
@@ -32,4 +32,5 @@ app.include_router(admin.router, prefix="/api")
 
 @app.on_event("startup")
 def on_startup():
+    engine = get_engine()
     Base.metadata.create_all(bind=engine)
