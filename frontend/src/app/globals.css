@@ -1,0 +1,39 @@
+@import "tailwindcss";
+
+:root {
+  --bg-primary: #0d0f1a;
+  --bg-card: #16192b;
+  --bg-input: #0a0c14;
+  --border: #2b3052;
+  --border-muted: #1e233d;
+  --accent-purple: #863bff;
+  --accent-cyan: #22d3ee;
+  --accent-btn: #3d4193;
+  --text-muted: #a1a1aa;
+}
+
+@theme inline {
+  --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+html,
+body {
+  max-width: 100vw;
+  overflow-x: hidden;
+  background: var(--bg-primary);
+  color: #fff;
+  font-family: var(--font-sans);
+  -webkit-tap-highlight-color: transparent;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+.safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.safe-top {
+  padding-top: env(safe-area-inset-top, 0px);
+}
