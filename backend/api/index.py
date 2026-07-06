@@ -1,11 +1,14 @@
 """Vercel serverless entry point."""
 import sys
+import os
 from pathlib import Path
 
-# Ensure the backend package is importable
-backend_dir = str(Path(__file__).resolve().parents[1])
-if backend_dir not in sys.path:
-    sys.path.insert(0, backend_dir)
+# Compute absolute path to backend directory
+_backend = Path(__file__).resolve().parent.parent  # backend/
+_bp = str(_backend)
+if _bp not in sys.path:
+    sys.path.insert(0, _bp)
+os.environ["PYTHONPATH"] = _bp
 
 from mangum import Mangum
 from app.main import app

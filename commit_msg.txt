@@ -1,3 +1,7 @@
-Fix Vercel Python import — add backend dir to sys.path in handler
+Fix Vercel deployment — move Python handler to project root
+- Move api/index.py from backend/api/ to api/
+- Update vercel.json routes and builds
+- Add PYTHONPATH env var on Vercel
+- Remove old backend/api/ directory
 
 Co-authored-by: CommandCodeBot <noreply@commandcode.ai>
