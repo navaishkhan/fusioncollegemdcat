@@ -1,7 +1,3 @@
-Fix Vercel deployment — move Python handler to project root
-- Move api/index.py from backend/api/ to api/
-- Update vercel.json routes and builds
-- Add PYTHONPATH env var on Vercel
-- Remove old backend/api/ directory
+Rebuild — move app code into api/ for Vercel Python function access
 
 Co-authored-by: CommandCodeBot <noreply@commandcode.ai>
