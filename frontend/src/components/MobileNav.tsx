@@ -2,7 +2,32 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { dashboardPath, getStoredUser } from "@/lib/api";
+import { motion, AnimatePresence } from "framer-motion";
+import { 
+  Home, 
+  Users, 
+  BookOpen, 
+  FileText, 
+  Layers, 
+  BarChart3, 
+  User, 
+  History, 
+  TrendingUp,
+  LogOut
+} from "lucide-react";
+import { dashboardPath, getStoredUser, clearAuth } from "@/lib/api";
+
+const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
+  Home: Home,
+  Users: Users,
+  Bank: BookOpen,
+  Tests: FileText,
+  Batches: Layers,
+  Analytics: BarChart3,
+  Profile: User,
+  History: History,
+  Progress: TrendingUp,
+};
 
 const NAV: Record<string, { href: string; label: string }[]> = {
   admin: [
@@ -45,27 +70,88 @@ export default function MobileNav() {
   // Don't show nav on exam pages
   if (pathname.includes("/student/tests/") && pathname !== "/student/tests") return null;
 
+  const handleLogout = () => {
+    clearAuth();
+    window.location.href = "/login";
+  };
+
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-30 border-t border-[#1e233d] bg-[#0d0f1a]/95 backdrop-blur-md safe-bottom">
-      <div className="mx-auto flex max-w-lg items-stretch justify-around px-2 py-2">
-        {items.map((item) => {
-          const active = pathname === item.href;
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={`flex min-w-[72px] flex-col items-center rounded-xl px-3 py-2 text-[11px] font-semibold transition-colors ${
-                active
-                  ? "bg-[#3d4193]/40 text-cyan-400"
-                  : "text-zinc-400 hover:text-white"
-              }`}
-            >
-              <span>{item.label}</span>
-            </Link>
-          );
-        })}
-      </div>
-    </nav>
+    <>
+      {/* Mobile Floating Bottom Nav */}
+      <nav className="fixed bottom-4 left-4 right-4 z-35 md:hidden glass-panel border border-[#1e223c]/80 rounded-2xl shadow-2xl p-1.5 safe-bottom">
+        <div className="flex items-center justify-around gap-1">
+          {items.map((item) => {
+            const active = pathname === item.href;
+            const Icon = ICON_MAP[item.label] || BookOpen;
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={`relative flex flex-col items-center justify-center flex-1 py-2 text-[10px] font-bold rounded-xl transition-all duration-300 ${
+                  active ? "text-cyan-400" : "text-slate-400 hover:text-white"
+                }`}
+              >
+                {active && (
+                  <motion.div
+                    layoutId="active-pill-mobile"
+                    className="absolute inset-0 bg-[#7c3aed]/15 rounded-xl border border-[#7c3aed]/20"
+                    transition={{ type: "spring", stiffness: 380, damping: 30 }}
+                  />
+                )}
+                <Icon className={`w-5 h-5 mb-1 relative z-10 ${active ? "text-cyan-400" : "text-slate-400"}`} />
+                <span className="relative z-10 text-[9px] tracking-tight">{item.label}</span>
+              </Link>
+            );
+          })}
+        </div>
+      </nav>
+
+      {/* Desktop Left Sidebar */}
+      <aside className="hidden md:flex flex-col fixed left-0 top-0 bottom-0 w-64 border-r border-[#1e223c] bg-[#0c0e1a]/95 backdrop-blur-xl py-6 px-4 z-30 justify-between">
+        <div className="space-y-6">
+          <div className="px-3 py-2">
+            <h2 className="text-gradient text-lg font-black tracking-wider uppercase">FUSION MDCAT</h2>
+            <div className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-1">
+              {user.role} Portal
+            </div>
+          </div>
+          
+          <div className="space-y-1">
+            {items.map((item) => {
+              const active = pathname === item.href;
+              const Icon = ICON_MAP[item.label] || BookOpen;
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={`relative flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all duration-200 ${
+                    active ? "text-cyan-400" : "text-slate-400 hover:text-slate-200 hover:bg-white/5"
+                  }`}
+                >
+                  {active && (
+                    <motion.div
+                      layoutId="active-pill-desktop"
+                      className="absolute inset-0 bg-[#7c3aed]/15 rounded-xl border border-[#7c3aed]/30"
+                      transition={{ type: "spring", stiffness: 380, damping: 30 }}
+                    />
+                  )}
+                  <Icon className={`w-5 h-5 relative z-10 ${active ? "text-cyan-400" : "text-slate-400"}`} />
+                  <span className="relative z-10">{item.label}</span>
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+
+        <button
+          onClick={handleLogout}
+          className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-rose-400 hover:bg-rose-500/10 transition-colors mt-auto cursor-pointer"
+        >
+          <LogOut className="w-5 h-5" />
+          <span>Sign Out</span>
+        </button>
+      </aside>
+    </>
   );
 }
 
@@ -81,3 +167,4 @@ export function AuthGuard({ children, roles }: { children: React.ReactNode; role
   }
   return <>{children}</>;
 }
+

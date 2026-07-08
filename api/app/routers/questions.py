@@ -104,3 +104,33 @@ def deactivate_question(
     question.is_active = False
     db.commit()
     return {"ok": True}
+
+
+@router.post("/purge")
+def purge_old_questions(
+    created_before: str = Query(description="ISO datetime: deactivate all questions created before this"),
+    subject: Subject | None = Query(default=None),
+    db: Session = Depends(get_db),
+    user: User = Depends(require_roles(UserRole.ADMIN)),
+):
+    """Admin-only: bulk deactivate questions created before a given timestamp."""
+    from datetime import datetime, timezone
+    try:
+        cutoff = datetime.fromisoformat(created_before)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid ISO datetime format. Use e.g. 2026-07-07T06:00:00")
+
+    if cutoff.tzinfo is None:
+        cutoff = cutoff.replace(tzinfo=timezone.utc)
+
+    query = db.query(Question).filter(
+        Question.is_active.is_(True),
+        Question.created_at < cutoff,
+    )
+    if subject:
+        query = query.filter(Question.subject == subject)
+
+    count = query.count()
+    query.update({"is_active": False}, synchronize_session="fetch")
+    db.commit()
+    return {"deactivated": count, "filter": {"created_before": created_before, "subject": subject.value if subject else None}}

@@ -1,6 +1,21 @@
 "use client";
 
 import { use, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { motion, AnimatePresence } from "framer-motion";
+import { 
+  Award, 
+  CheckCircle2, 
+  XCircle, 
+  HelpCircle, 
+  BookOpen, 
+  ChevronLeft, 
+  ChevronRight, 
+  ArrowLeft,
+  Check, 
+  X,
+  Target
+} from "lucide-react";
 import MobileNav, { AuthGuard } from "@/components/MobileNav";
 import { apiFetch } from "@/lib/api";
 import { Card } from "@/components/Brand";
@@ -37,10 +52,12 @@ export default function ResultPage({
   params: Promise<{ attempt_id: string }>;
 }) {
   const { attempt_id } = use(params);
+  const router = useRouter();
   const [data, setData] = useState<ResultData | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [showReview, setShowReview] = useState(false);
   const [reviewIndex, setReviewIndex] = useState(0);
+  const [direction, setDirection] = useState(1); // 1 for next, -1 for prev
 
   useEffect(() => {
     apiFetch<ResultData>(`/api/tests/attempts/${attempt_id}/result`)
@@ -48,11 +65,23 @@ export default function ResultPage({
       .catch((e) => setError(e.message));
   }, [attempt_id]);
 
+  const navigateTo = (index: number) => {
+    if (index > reviewIndex) setDirection(1);
+    else setDirection(-1);
+    setReviewIndex(index);
+  };
+
   if (error) {
     return (
       <AuthGuard roles={["student", "parent"]}>
-        <div className="flex min-h-screen items-center justify-center bg-[#0d0f1a] p-6">
-          <p className="text-sm text-red-400">{error}</p>
+        <div className="flex min-h-screen items-center justify-center bg-[#080a14] p-6 bg-grid-glow bg-dot-pattern">
+          <Card className="max-w-xs text-center border-red-500/20 bg-red-950/15">
+            <XCircle className="w-10 h-10 text-red-400 mx-auto mb-3" />
+            <p className="text-sm font-semibold text-red-400">{error}</p>
+            <button onClick={() => router.back()} className="mt-4 text-xs font-bold text-slate-400 hover:text-white uppercase tracking-wider">
+              Go Back
+            </button>
+          </Card>
         </div>
       </AuthGuard>
     );
@@ -61,19 +90,13 @@ export default function ResultPage({
   if (!data) {
     return (
       <AuthGuard roles={["student", "parent"]}>
-        <div className="flex min-h-screen items-center justify-center bg-[#0d0f1a] p-6">
-          <p className="text-sm text-zinc-400">Loading...</p>
+        <div className="flex min-h-screen items-center justify-center bg-[#080a14] p-6 bg-grid-glow bg-dot-pattern">
+          <span className="h-6 w-6 animate-spin rounded-full border-2 border-cyan-500/30 border-t-cyan-400 mr-2" />
+          <p className="text-sm font-semibold text-slate-400">Loading Result Details...</p>
         </div>
       </AuthGuard>
     );
   }
-
-  const maxScore = data.subject_breakdown
-    ? Object.values(data.subject_breakdown).reduce(
-        (sum, s) => sum + s.correct + s.wrong + s.skipped,
-        0,
-      )
-    : 0;
 
   const correctCount = data.subject_breakdown
     ? Object.values(data.subject_breakdown).reduce(
@@ -93,14 +116,31 @@ export default function ResultPage({
       )
     : 0;
 
+  const reviewTransitionVariants = {
+    initial: (dir: number) => ({
+      x: dir * 40,
+      opacity: 0
+    }),
+    active: {
+      x: 0,
+      opacity: 1,
+      transition: { duration: 0.25, ease: "easeOut" as const }
+    },
+    exit: (dir: number) => ({
+      x: -dir * 40,
+      opacity: 0,
+      transition: { duration: 0.2, ease: "easeIn" as const }
+    })
+  };
+
   // Review mode
   if (showReview && data.review) {
     const item = data.review[reviewIndex];
     if (!item) {
       return (
         <AuthGuard roles={["student", "parent"]}>
-          <div className="flex min-h-screen items-center justify-center bg-[#0d0f1a] p-6">
-            <p className="text-sm text-zinc-400">No review data.</p>
+          <div className="flex min-h-screen items-center justify-center bg-[#080a14] p-6 bg-grid-glow bg-dot-pattern">
+            <p className="text-sm font-semibold text-slate-400">No review data available.</p>
           </div>
         </AuthGuard>
       );
@@ -111,34 +151,34 @@ export default function ResultPage({
 
     return (
       <AuthGuard roles={["student", "parent"]}>
-        <div className="min-h-screen bg-[#0d0f1a] pb-24 safe-top safe-bottom">
-          <header className="sticky top-0 z-20 border-b border-[#1e233d] bg-[#0d0f1a]/95 px-4 py-3 backdrop-blur-md">
-            <div className="flex items-center justify-between">
-              <h1 className="text-sm font-bold text-white">Review</h1>
+        <div className="min-h-screen bg-[#080a14] bg-grid-glow bg-dot-pattern pb-32 safe-top safe-bottom md:pl-64">
+          <header className="sticky top-0 z-20 border-b border-[#1e223c] bg-[#080a14]/80 px-4 py-3 backdrop-blur-xl">
+            <div className="mx-auto max-w-2xl flex items-center justify-between">
+              <h1 className="text-sm font-black text-white uppercase tracking-widest">Question Review</h1>
               <button
                 onClick={() => setShowReview(false)}
-                className="text-xs text-cyan-400"
+                className="text-xs font-bold text-cyan-400 hover:text-cyan-300 flex items-center gap-1 cursor-pointer"
               >
-                Summary
+                <ArrowLeft className="w-3.5 h-3.5" />
+                <span>Summary</span>
               </button>
             </div>
-            <div className="mt-2 flex flex-wrap gap-1.5">
+            {/* Quick selector dots */}
+            <div className="mx-auto max-w-2xl mt-4 flex flex-wrap gap-1.5 max-h-[85px] overflow-y-auto pr-1">
               {data.review.map((r, i) => {
-                let cls =
-                  "w-7 h-7 rounded-lg text-[11px] font-bold flex items-center justify-center border";
+                let cls = "w-8 h-8 rounded-xl text-[11px] font-black flex items-center justify-center border transition-all cursor-pointer ";
                 if (r.is_correct === true)
-                  cls += " bg-emerald-600/30 border-emerald-500 text-emerald-300";
+                  cls += "bg-emerald-500/10 border-emerald-500/40 text-emerald-400 shadow-md shadow-emerald-500/5";
                 else if (r.is_correct === false)
-                  cls += " bg-red-600/30 border-red-500 text-red-300";
+                  cls += "bg-red-500/10 border-red-500/40 text-red-400 shadow-md shadow-red-500/5";
                 else
-                  cls +=
-                    " bg-[#16192b] border-[#2b3052] text-zinc-500";
-                if (i === reviewIndex) cls += " ring-2 ring-cyan-400";
+                  cls += "bg-[#0f1224]/80 border-[#1e223c] text-slate-500 hover:border-slate-600";
+                if (i === reviewIndex) cls += " ring-2 ring-cyan-400 border-transparent scale-110";
                 return (
                   <button
                     key={r.question_id}
                     className={cls}
-                    onClick={() => setReviewIndex(i)}
+                    onClick={() => navigateTo(i)}
                   >
                     {i + 1}
                   </button>
@@ -147,83 +187,117 @@ export default function ResultPage({
             </div>
           </header>
 
-          <main className="px-4 py-4">
-            <p className="mb-4 text-sm leading-relaxed text-zinc-100">
-              {item.stem}
-            </p>
-            <div className="space-y-2">
-              {Object.entries(item.options).map(([key, value]) => {
-                const isSelected = item.selected_option === key;
-                const isCorrectAnswer = item.correct_option === key;
-                let border = "border-[#2b3052]";
-                let bg = "bg-[#16192b]";
-                let text = "text-zinc-300";
-                if (isCorrectAnswer) {
-                  border = "border-emerald-500";
-                  bg = "bg-emerald-600/20";
-                  text = "text-emerald-300";
-                } else if (isSelected && !item.is_correct) {
-                  border = "border-red-500";
-                  bg = "bg-red-600/20";
-                  text = "text-red-300";
-                }
-                return (
-                  <div
-                    key={key}
-                    className={`flex items-start gap-3 rounded-xl border px-4 py-3 text-sm ${border} ${bg} ${text}`}
-                  >
-                    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold border border-current">
-                      {key}
-                    </span>
-                    <span className="flex-1">{value}</span>
-                    {isCorrectAnswer && (
-                      <span className="text-emerald-400">✓</span>
-                    )}
-                    {isSelected && !item.is_correct && (
-                      <span className="text-red-400">✗</span>
-                    )}
+          <main className="px-4 py-6 relative">
+            <div className="mx-auto max-w-2xl min-h-[300px]">
+              <AnimatePresence mode="wait" initial={false} custom={direction}>
+                <motion.div
+                  key={reviewIndex}
+                  custom={direction}
+                  variants={reviewTransitionVariants}
+                  initial="initial"
+                  animate="active"
+                  exit="exit"
+                  className="w-full absolute"
+                >
+                  <p className="mb-6 text-base font-medium leading-relaxed text-slate-200">
+                    {item.stem}
+                  </p>
+                  
+                  <div className="space-y-3">
+                    {Object.entries(item.options).map(([key, value]) => {
+                      const isSelected = item.selected_option === key;
+                      const isCorrectAnswer = item.correct_option === key;
+                      let border = "border-[#1e223c]";
+                      let bg = "bg-[#0f1224]/60";
+                      let text = "text-slate-300";
+                      let iconEl = null;
+
+                      if (isCorrectAnswer) {
+                        border = "border-emerald-500/50";
+                        bg = "bg-emerald-500/10";
+                        text = "text-emerald-400";
+                        iconEl = <Check className="w-4 h-4 text-emerald-400 shrink-0" />;
+                      } else if (isSelected && !item.is_correct) {
+                        border = "border-red-500/50";
+                        bg = "bg-red-500/10";
+                        text = "text-red-400";
+                        iconEl = <X className="w-4 h-4 text-red-400 shrink-0" />;
+                      }
+
+                      return (
+                        <div
+                          key={key}
+                          className={`flex items-start gap-3 rounded-2xl border p-4 text-sm transition-all ${border} ${bg} ${text}`}
+                        >
+                          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-black border border-current">
+                            {key}
+                          </span>
+                          <span className="flex-1 font-medium">{value}</span>
+                          {iconEl}
+                        </div>
+                      );
+                    })}
                   </div>
-                );
-              })}
+
+                  {item.explanation && (
+                    <motion.div 
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="mt-6 rounded-2xl border border-[#1e223c] bg-[#0f1224]/40 p-5"
+                    >
+                      <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                        Explanation
+                      </p>
+                      <p className="mt-1 text-sm leading-relaxed text-slate-300">
+                        {item.explanation}
+                      </p>
+                    </motion.div>
+                  )}
+                </motion.div>
+              </AnimatePresence>
             </div>
-            {item.explanation && (
-              <div className="mt-4 rounded-xl border border-[#2b3052] bg-[#16192b]/80 p-4">
-                <p className="text-xs font-bold uppercase tracking-wider text-zinc-500">
-                  Explanation
-                </p>
-                <p className="mt-1 text-sm text-zinc-300">
-                  {item.explanation}
-                </p>
-              </div>
-            )}
           </main>
 
-          <footer className="fixed bottom-0 left-0 right-0 z-30 border-t border-[#1e233d] bg-[#0d0f1a]/95 px-4 py-3 backdrop-blur-md safe-bottom">
-            <div className="flex items-center justify-between gap-2">
-              <button
-                onClick={() => setReviewIndex(Math.max(0, reviewIndex - 1))}
+          <footer className="fixed bottom-0 left-0 right-0 z-30 border-t border-[#1e223c] bg-[#080a14]/90 px-4 py-4 backdrop-blur-xl safe-bottom md:pl-64">
+            <div className="mx-auto max-w-2xl flex items-center justify-between gap-3">
+              <motion.button
+                whileTap={{ scale: 0.97 }}
+                onClick={() => navigateTo(Math.max(0, reviewIndex - 1))}
                 disabled={reviewIndex === 0}
-                className="rounded-xl bg-[#16192b] px-4 py-2.5 text-sm font-semibold text-zinc-300 disabled:opacity-30"
+                className="flex items-center gap-1.5 rounded-xl border border-[#1e223c] bg-[#0f1224]/60 px-4.5 py-3 text-xs font-bold uppercase tracking-wider text-slate-300 hover:bg-white/5 transition-all disabled:opacity-30 disabled:pointer-events-none cursor-pointer"
               >
-                ← Prev
-              </button>
-              <div className="text-xs text-zinc-400">
-                {userCorrect ? "Correct ✓" : item.is_correct === null ? "Skipped" : "Wrong ✗"}
+                <ChevronLeft className="w-4 h-4" />
+                <span>Prev</span>
+              </motion.button>
+              
+              <div className="text-xs font-black uppercase tracking-widest text-slate-400">
+                {userCorrect ? (
+                  <span className="text-emerald-400 font-bold">Correct ✓</span>
+                ) : item.is_correct === null ? (
+                  <span className="text-slate-500 font-bold">Skipped</span>
+                ) : (
+                  <span className="text-red-400 font-bold">Incorrect ✗</span>
+                )}
               </div>
+
               {isLast ? (
-                <button
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.97 }}
                   onClick={() => setShowReview(false)}
-                  className="rounded-xl bg-cyan-600 px-4 py-2.5 text-sm font-bold text-white"
+                  className="rounded-xl bg-gradient-to-r from-cyan-500 to-violet-600 px-5.5 py-3 text-xs font-bold uppercase tracking-wider text-white shadow-lg cursor-pointer"
                 >
-                  Done
-                </button>
+                  Summary
+                </motion.button>
               ) : (
-                <button
-                  onClick={() => setReviewIndex(reviewIndex + 1)}
-                  className="rounded-xl bg-[#3d4193] px-4 py-2.5 text-sm font-semibold text-white"
+                <motion.button
+                  whileTap={{ scale: 0.97 }}
+                  onClick={() => navigateTo(reviewIndex + 1)}
+                  className="flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-cyan-500 to-violet-600 px-5.5 py-3 text-xs font-bold uppercase tracking-wider text-white shadow-lg cursor-pointer"
                 >
-                  Next →
-                </button>
+                  <span>Next</span>
+                  <ChevronRight className="w-4 h-4" />
+                </motion.button>
               )}
             </div>
           </footer>
@@ -235,93 +309,109 @@ export default function ResultPage({
   // Summary view
   return (
     <AuthGuard roles={["student", "parent"]}>
-      <div className="min-h-screen bg-[#0d0f1a] pb-24 safe-top safe-bottom">
-        <header className="sticky top-0 z-20 border-b border-[#1e233d] bg-[#0d0f1a]/95 px-4 py-3 backdrop-blur-md">
-          <h1 className="text-lg font-bold text-white">Result</h1>
+      <div className="min-h-screen bg-[#080a14] bg-grid-glow bg-dot-pattern pb-28 safe-top safe-bottom md:pl-64">
+        <header className="sticky top-0 z-20 border-b border-[#1e223c] bg-[#080a14]/80 px-4 py-3 backdrop-blur-xl">
+          <div className="mx-auto max-w-2xl flex items-center justify-between">
+            <h1 className="text-lg font-black text-white tracking-tight uppercase">Result Report</h1>
+            <button
+              onClick={() => router.push("/student")}
+              className="text-xs font-bold text-slate-400 hover:text-white flex items-center gap-1 cursor-pointer"
+            >
+              <ArrowLeft className="w-3.5 h-3.5" />
+              <span>Dashboard</span>
+            </button>
+          </div>
         </header>
 
-        <main className="px-4 py-4">
-          {/* Score card */}
-          <Card className="mb-4 text-center">
-            <p className="text-4xl font-black text-cyan-400">
-              {data.total_score?.toFixed(1) ?? "—"}
-            </p>
-            <p className="mt-1 text-xs text-zinc-400">Total Score</p>
-            {data.rank_in_batch != null && (
-              <div className="mt-2 inline-block rounded-full bg-amber-500/20 px-3 py-1 text-xs font-bold text-amber-300">
-                Rank #{data.rank_in_batch}
-              </div>
-            )}
-          </Card>
+        <main className="mx-auto max-w-2xl px-4 py-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            {/* Score card */}
+            <Card className="text-center md:col-span-2 relative overflow-hidden group">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-cyan-500/5 to-violet-500/5 rounded-full blur-2xl pointer-events-none" />
+              <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Total Score</p>
+              <p className="text-5xl font-black text-gradient tracking-tight">
+                {data.total_score?.toFixed(1) ?? "—"}
+              </p>
+              {data.rank_in_batch != null && (
+                <div className="mt-4 inline-flex items-center gap-1 rounded-full bg-amber-500/10 border border-amber-500/20 px-3.5 py-1.5 text-xs font-bold text-amber-400">
+                  <Award className="w-3.5 h-3.5" />
+                  <span>Batch Rank: #{data.rank_in_batch}</span>
+                </div>
+              )}
+            </Card>
 
-          {/* Stats grid */}
-          <div className="mb-4 grid grid-cols-3 gap-2">
-            <div className="rounded-xl border border-emerald-500/30 bg-emerald-600/10 p-3 text-center">
-              <div className="text-lg font-bold text-emerald-400">
-                {correctCount}
+            {/* General metrics */}
+            <div className="grid grid-cols-3 md:grid-cols-1 gap-3">
+              <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/5 p-4 text-center flex flex-col justify-center">
+                <div className="text-xl font-black text-emerald-400">{correctCount}</div>
+                <div className="text-[9px] font-bold uppercase tracking-widest text-emerald-500/80 mt-1">Correct</div>
               </div>
-              <div className="text-[10px] uppercase text-emerald-500/80">
-                Correct
+              <div className="rounded-2xl border border-red-500/20 bg-red-500/5 p-4 text-center flex flex-col justify-center">
+                <div className="text-xl font-black text-red-400">{wrongCount}</div>
+                <div className="text-[9px] font-bold uppercase tracking-widest text-red-500/80 mt-1">Wrong</div>
               </div>
-            </div>
-            <div className="rounded-xl border border-red-500/30 bg-red-600/10 p-3 text-center">
-              <div className="text-lg font-bold text-red-400">{wrongCount}</div>
-              <div className="text-[10px] uppercase text-red-500/80">Wrong</div>
-            </div>
-            <div className="rounded-xl border border-zinc-500/30 bg-zinc-600/10 p-3 text-center">
-              <div className="text-lg font-bold text-zinc-400">
-                {skippedCount}
-              </div>
-              <div className="text-[10px] uppercase text-zinc-500/80">
-                Skipped
+              <div className="rounded-2xl border border-slate-500/20 bg-slate-500/5 p-4 text-center flex flex-col justify-center">
+                <div className="text-xl font-black text-slate-400">{skippedCount}</div>
+                <div className="text-[9px] font-bold uppercase tracking-widest text-slate-500/80 mt-1">Skipped</div>
               </div>
             </div>
           </div>
 
           {/* Subject breakdown */}
           {data.subject_breakdown && (
-            <div className="mb-4 space-y-2">
-              <h2 className="text-sm font-bold text-white">
-                Subject Breakdown
+            <div className="mb-8 space-y-3.5">
+              <h2 className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5 px-1">
+                <Target className="w-3.5 h-3.5 text-violet-400" />
+                <span>Subject Analysis</span>
               </h2>
-              {Object.entries(data.subject_breakdown).map(
-                ([subject, stat]) => (
-                  <Card key={subject}>
+              <div className="space-y-3">
+                {Object.entries(data.subject_breakdown).map(([subject, stat]) => (
+                  <Card key={subject} className="hover:border-slate-800 transition-colors">
                     <div className="flex items-center justify-between">
-                      <h3 className="text-sm font-semibold capitalize text-white">
+                      <h3 className="text-sm font-bold capitalize text-white tracking-tight">
                         {subject.replace("_", " ")}
                       </h3>
-                      <span className="text-sm font-bold text-cyan-400">
-                        {stat.score.toFixed(1)}
+                      <span className="text-sm font-black text-cyan-400">
+                        {stat.score.toFixed(1)} pts
                       </span>
                     </div>
-                    <div className="mt-2 flex gap-3 text-[11px] text-zinc-500">
-                      <span className="text-emerald-400">
-                        {stat.correct}C
+                    <div className="mt-3 flex items-center gap-4 text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                      <span className="text-emerald-400 flex items-center gap-0.5">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400/80" />
+                        <span>{stat.correct} Correct</span>
                       </span>
-                      <span className="text-red-400">{stat.wrong}W</span>
-                      <span>{stat.skipped}S</span>
+                      <span className="text-red-400 flex items-center gap-0.5">
+                        <XCircle className="w-3.5 h-3.5 text-red-400/80" />
+                        <span>{stat.wrong} Wrong</span>
+                      </span>
+                      <span className="flex items-center gap-0.5">
+                        <HelpCircle className="w-3.5 h-3.5 text-slate-500" />
+                        <span>{stat.skipped} Skipped</span>
+                      </span>
                     </div>
                   </Card>
-                ),
-              )}
+                ))}
+              </div>
             </div>
           )}
 
           {/* Review button */}
           {data.review && data.review.length > 0 && (
-            <button
+            <motion.button
+              whileHover={{ scale: 1.015 }}
+              whileTap={{ scale: 0.985 }}
               onClick={() => {
                 setReviewIndex(0);
                 setShowReview(true);
               }}
-              className="w-full rounded-xl bg-[#3d4193] py-3.5 text-sm font-semibold text-white"
+              className="w-full rounded-2xl bg-gradient-to-r from-cyan-500 to-violet-600 py-4 text-sm font-bold text-white shadow-lg shadow-cyan-500/10 cursor-pointer"
             >
-              Review Answers
-            </button>
+              Review Incorrect & Correct Answers
+            </motion.button>
           )}
         </main>
       </div>
+      <MobileNav />
     </AuthGuard>
   );
 }
