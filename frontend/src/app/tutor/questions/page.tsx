@@ -68,7 +68,7 @@ export default function QuestionsPage() {
                   <p className="mt-1 text-xs text-zinc-500">{q.topic}</p>
                 </div>
                 <div className="flex shrink-0 flex-col gap-1">
-                  <button onClick={() => router.push(`/tutor/questions/${q.id}/edit`)} className="rounded-lg bg-[#3d4193] px-3 py-1 text-[11px] font-semibold text-white">Edit</button>
+                  <button onClick={() => router.push(`/tutor/questions/edit?id=${q.id}`)} className="rounded-lg bg-[#3d4193] px-3 py-1 text-[11px] font-semibold text-white">Edit</button>
                   <button onClick={() => deleteQuestion(q.id)} className="rounded-lg bg-red-600/30 px-3 py-1 text-[11px] font-semibold text-red-300">Del</button>
                 </div>
               </div>
