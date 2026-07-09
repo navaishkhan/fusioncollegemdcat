@@ -22,7 +22,8 @@ export default function QuestionsPage() {
   const [subject, setSubject] = useState("");
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
-  const [selectedTopic, setSelectedTopic] = useState("");
+  const [activeTab, setActiveTab] = useState("all");
+  const [selectedSubTopic, setSelectedSubTopic] = useState("");
   const [error, setError] = useState<string | null>(null);
 
   const fetchQuestions = () => {
@@ -48,8 +49,14 @@ export default function QuestionsPage() {
 
   useEffect(() => {
     fetchQuestions();
-    setSelectedTopic("");
+    setActiveTab("all");
+    setSelectedSubTopic("");
   }, [subject, debouncedSearch]);
+
+  // Reset sub-topic when tab changes
+  useEffect(() => {
+    setSelectedSubTopic("");
+  }, [activeTab]);
 
   const deleteQuestion = async (id: string) => {
     if (!confirm("Deactivate this question?")) return;
@@ -61,78 +68,135 @@ export default function QuestionsPage() {
     }
   };
 
-  // Compute unique topics from current questions list
-  const uniqueTopics = Array.from(new Set(questions.map((q) => q.topic))).filter(Boolean);
+  // Grouped counts mapping
+  const mostRepeatedCount = questions.filter((q) => q.topic === "Most Repeated").length;
+  const pastPapersCount = questions.filter((q) => q.topic.startsWith("Past Paper - ")).length;
+  const chapterWiseCount = questions.filter(
+    (q) => q.topic && q.topic !== "Most Repeated" && !q.topic.startsWith("Past Paper - ")
+  ).length;
 
-  // Filter questions client-side by selected topic
-  const filteredQuestions = selectedTopic
-    ? questions.filter((q) => q.topic === selectedTopic)
-    : questions;
+  // Filter questions for the active tab
+  const tabQuestions = questions.filter((q) => {
+    if (activeTab === "most_repeated") return q.topic === "Most Repeated";
+    if (activeTab === "past_papers") return q.topic.startsWith("Past Paper - ");
+    if (activeTab === "chapter_wise")
+      return q.topic && q.topic !== "Most Repeated" && !q.topic.startsWith("Past Paper - ");
+    return true; // "all"
+  });
+
+  // Calculate unique sub-topics (chapters/years) in current tab
+  const subTopics = Array.from(new Set(tabQuestions.map((q) => q.topic)))
+    .filter(Boolean)
+    .sort();
+
+  // Filter questions by sub-topic client-side
+  const filteredQuestions = selectedSubTopic
+    ? tabQuestions.filter((q) => q.topic === selectedSubTopic)
+    : tabQuestions;
+
+  // Build tabs dynamically depending on data availability
+  const tabs = [
+    { id: "all", label: "All", count: questions.length },
+    ...(mostRepeatedCount > 0 ? [{ id: "most_repeated", label: "Most Repeated", count: mostRepeatedCount }] : []),
+    ...(chapterWiseCount > 0 ? [{ id: "chapter_wise", label: "Chapter-Wise", count: chapterWiseCount }] : []),
+    ...(pastPapersCount > 0 ? [{ id: "past_papers", label: "Past Papers", count: pastPapersCount }] : [])
+  ];
 
   return (
     <AuthGuard roles={["admin", "tutor"]}>
       <PageShell title="Question Bank">
-        <div className="mb-4 flex gap-2 overflow-x-auto pb-1">
-          <button onClick={() => setSubject("")} className={`shrink-0 rounded-full px-3 py-1.5 text-xs font-semibold ${!subject ? "bg-cyan-500/20 text-cyan-400" : "bg-[#16192b] text-zinc-400"}`}>All</button>
+        {/* Subject Navigation */}
+        <div className="mb-4 flex gap-2 overflow-x-auto pb-1 scrollbar-none">
+          <button onClick={() => setSubject("")} className={`shrink-0 rounded-full px-3 py-1.5 text-xs font-semibold ${!subject ? "bg-cyan-500/20 text-cyan-400" : "bg-[#16192b] text-zinc-400"}`}>All Subjects</button>
           {SUBJECTS.map((s) => (
             <button key={s} onClick={() => setSubject(s)} className={`shrink-0 rounded-full px-3 py-1.5 text-xs font-semibold capitalize ${subject === s ? "bg-cyan-500/20 text-cyan-400" : "bg-[#16192b] text-zinc-400"}`}>{s.replace("_", " ")}</button>
           ))}
         </div>
 
-        {/* Search & Topic Filters */}
-        <div className="mb-4 flex flex-col gap-3">
-          <div className="relative flex items-center">
-            <input
-              type="text"
-              placeholder="Search MCQs by statement..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="w-full rounded-xl bg-[#121424] border border-[#1e223c] px-4 py-3 pl-10 text-sm text-zinc-200 placeholder-zinc-500 focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/50 transition-all"
+        {/* Search Input */}
+        <div className="mb-4 relative flex items-center">
+          <input
+            type="text"
+            placeholder="Search MCQs by statement..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full rounded-xl bg-[#121424] border border-[#1e223c] px-4 py-3 pl-10 text-sm text-zinc-200 placeholder-zinc-500 focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/50 transition-all"
+          />
+          <svg
+            className="absolute left-3.5 h-4 w-4 text-zinc-500"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="2"
+              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
             />
-            <svg
-              className="absolute left-3.5 h-4 w-4 text-zinc-500"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
+          </svg>
+          {search && (
+            <button
+              onClick={() => setSearch("")}
+              className="absolute right-3.5 text-zinc-500 hover:text-white transition-colors text-xs"
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-              />
-            </svg>
-            {search && (
-              <button
-                onClick={() => setSearch("")}
-                className="absolute right-3.5 text-zinc-500 hover:text-white transition-colors text-xs"
-              >
-                ✕
-              </button>
-            )}
-          </div>
-
-          {uniqueTopics.length > 0 && (
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-semibold text-zinc-500 shrink-0">Topic:</span>
-              <select
-                value={selectedTopic}
-                onChange={(e) => setSelectedTopic(e.target.value)}
-                className="w-full rounded-xl bg-[#121424] border border-[#1e223c] px-3 py-2 text-xs text-zinc-300 focus:outline-none focus:border-cyan-500/50 transition-all capitalize"
-              >
-                <option value="">All Topics ({questions.length})</option>
-                {uniqueTopics.map((topic) => {
-                  const count = questions.filter((q) => q.topic === topic).length;
-                  return (
-                    <option key={topic} value={topic}>
-                      {topic.replace("_", " ")} ({count})
-                    </option>
-                  );
-                })}
-              </select>
-            </div>
+              ✕
+            </button>
           )}
         </div>
+
+        {/* Category Group Tabs */}
+        {tabs.length > 1 && (
+          <div className="mb-4 rounded-xl bg-[#121424] border border-[#1e223c] p-1 flex gap-1">
+            {tabs.map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`flex-1 rounded-lg py-2 text-center text-[11px] font-semibold transition-all ${
+                  activeTab === tab.id
+                    ? "bg-cyan-500/20 text-cyan-400 shadow-sm"
+                    : "text-zinc-500 hover:text-zinc-300"
+                }`}
+              >
+                {tab.label}
+                <span className="ml-1 text-[9px] opacity-60">({tab.count})</span>
+              </button>
+            ))}
+          </div>
+        )}
+
+        {/* Sub-topic Pills (Chapter-wise or Past Papers) */}
+        {subTopics.length > 1 && (activeTab === "chapter_wise" || activeTab === "past_papers") && (
+          <div className="mb-4 flex gap-1.5 overflow-x-auto pb-2 scrollbar-none">
+            <button
+              onClick={() => setSelectedSubTopic("")}
+              className={`shrink-0 rounded-lg px-2.5 py-1.5 text-[10px] font-bold border transition-all ${
+                !selectedSubTopic
+                  ? "bg-cyan-500/10 text-cyan-400 border-cyan-500/30"
+                  : "bg-[#16192b] text-zinc-400 border-[#23274a]"
+              }`}
+            >
+              All {activeTab === "chapter_wise" ? "Chapters" : "Years"}
+            </button>
+            {subTopics.map((topic) => {
+              const count = tabQuestions.filter((q) => q.topic === topic).length;
+              return (
+                <button
+                  key={topic}
+                  onClick={() => setSelectedSubTopic(topic)}
+                  className={`shrink-0 rounded-lg px-2.5 py-1.5 text-[10px] font-bold border transition-all capitalize ${
+                    selectedSubTopic === topic
+                      ? "bg-cyan-500/10 text-cyan-400 border-cyan-500/30"
+                      : "bg-[#16192b] text-zinc-400 border-[#23274a]"
+                  }`}
+                >
+                  {topic.replace("Past Paper - ", "").replace("_", " ")}
+                  <span className="ml-1 opacity-60">({count})</span>
+                </button>
+              );
+            })}
+          </div>
+        )}
 
         <div className="mb-4 flex gap-2">
           <button onClick={() => router.push("/tutor/questions/new")} className="flex-1 rounded-xl bg-emerald-600 py-3 text-sm font-bold text-white">+ New</button>
