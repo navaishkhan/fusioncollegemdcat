@@ -1,10 +1,13 @@
 "use client";
 
+export const dynamic = "force-dynamic";
+
 import { use, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import MobileNav, { AuthGuard } from "@/components/MobileNav";
 import { PageShell } from "@/components/Brand";
 import { apiFetch } from "@/lib/api";
+import MarkdownRenderer from "@/components/MarkdownRenderer";
 
 const SUBJECTS = ["bio", "chem", "physics", "english", "logical_reasoning"] as const;
 const DIFFICULTIES = ["easy", "medium", "hard"] as const;
@@ -37,12 +40,14 @@ export default function EditQuestionPage({ params }: { params: Promise<{ id: str
     option_d: "",
     correct_option: "A",
     explanation: "",
+    image_url: "",
   });
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [imageFile, setImageFile] = useState<File | null>(null);
 
   useEffect(() => {
-    apiFetch<QuestionData>(`/api/questions/${id}`)
+    apiFetch<QuestionData & { image_url?: string | null }>(`/api/questions/${id}`)
       .then((q) => {
         setForm({
           subject: q.subject,
@@ -56,6 +61,7 @@ export default function EditQuestionPage({ params }: { params: Promise<{ id: str
           option_d: q.options.D || "",
           correct_option: q.correct_option,
           explanation: q.explanation || "",
+          image_url: q.image_url || "",
         });
       })
       .catch((e) => setError(e.message))
@@ -69,6 +75,16 @@ export default function EditQuestionPage({ params }: { params: Promise<{ id: str
     setSaving(true);
     setError(null);
     try {
+      let finalImageUrl = form.image_url;
+      if (imageFile) {
+        const { upload } = await import("@vercel/blob/client");
+        const blob = await upload(imageFile.name, imageFile, {
+          access: "public",
+          handleUploadUrl: "/api/upload",
+        });
+        finalImageUrl = blob.url;
+      }
+
       await apiFetch(`/api/questions/${id}`, {
         method: "PUT",
         body: JSON.stringify({
@@ -77,6 +93,7 @@ export default function EditQuestionPage({ params }: { params: Promise<{ id: str
           difficulty: form.difficulty,
           past_paper_year: form.past_paper_year ? parseInt(form.past_paper_year) : null,
           stem: form.stem,
+          image_url: finalImageUrl || null,
           options: { A: form.option_a, B: form.option_b, C: form.option_c, D: form.option_d },
           correct_option: form.correct_option,
           explanation: form.explanation || null,
@@ -119,8 +136,40 @@ export default function EditQuestionPage({ params }: { params: Promise<{ id: str
             <input value={form.past_paper_year} onChange={(e) => update("past_paper_year", e.target.value)} type="number" className="w-full rounded-xl border border-[#2b3052] bg-[#0a0c14] px-3 py-2.5 text-sm text-white" />
           </div>
           <div>
-            <label className="mb-1 block text-xs font-semibold text-zinc-400">Question</label>
-            <textarea value={form.stem} onChange={(e) => update("stem", e.target.value)} rows={3} className="w-full rounded-xl border border-[#2b3052] bg-[#0a0c14] px-3 py-2.5 text-sm text-white" />
+            <div className="flex justify-between items-center mb-1">
+              <label className="block text-xs font-semibold text-zinc-400">Question (Markdown/LaTeX)</label>
+            </div>
+            <textarea value={form.stem} onChange={(e) => update("stem", e.target.value)} rows={3} className="w-full rounded-xl border border-[#2b3052] bg-[#0a0c14] px-3 py-2.5 text-sm text-white font-mono" />
+            {form.stem && (
+              <div className="mt-2 p-3 rounded-xl border border-dashed border-[#2b3052] bg-[#0f1224]/50">
+                <p className="text-[10px] uppercase text-zinc-500 font-bold mb-2">Live Preview</p>
+                <MarkdownRenderer content={form.stem} />
+              </div>
+            )}
+          </div>
+          <div>
+            <label className="mb-1 block text-xs font-semibold text-zinc-400">
+              Diagram / Image <span className="text-zinc-500">(optional)</span>
+            </label>
+            {form.image_url && !imageFile && (
+              <div className="mb-3">
+                <p className="text-xs text-zinc-500 mb-2">Current Image:</p>
+                <img src={form.image_url} alt="Question diagram" className="max-h-40 rounded border border-[#2b3052]" />
+              </div>
+            )}
+            <input
+              type="file"
+              accept="image/*"
+              onChange={(e) => {
+                if (e.target.files?.[0]) setImageFile(e.target.files[0]);
+              }}
+              className="w-full rounded-xl border border-[#2b3052] bg-[#0a0c14] px-3 py-2.5 text-sm text-white file:mr-4 file:rounded-full file:border-0 file:bg-[#2b3052] file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-emerald-600 cursor-pointer"
+            />
+            {imageFile && (
+              <p className="mt-2 text-xs text-emerald-400">
+                New selection: {imageFile.name} ({(imageFile.size / 1024).toFixed(1)} KB)
+              </p>
+            )}
           </div>
           <div className="space-y-2">
             {(["A", "B", "C", "D"] as const).map((opt) => (

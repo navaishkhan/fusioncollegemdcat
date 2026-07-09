@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import MobileNav, { AuthGuard } from "@/components/MobileNav";
 import { PageShell } from "@/components/Brand";
 import { apiFetch } from "@/lib/api";
+import MarkdownRenderer from "@/components/MarkdownRenderer";
 
 const SUBJECTS = ["bio", "chem", "physics", "english", "logical_reasoning"] as const;
 const DIFFICULTIES = ["easy", "medium", "hard"] as const;
@@ -23,9 +24,11 @@ export default function CreateQuestionPage() {
     option_d: "",
     correct_option: "A",
     explanation: "",
+    image_url: "",
   });
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [imageFile, setImageFile] = useState<File | null>(null);
 
   const update = (field: string, value: string) =>
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -35,6 +38,16 @@ export default function CreateQuestionPage() {
     setSaving(true);
     setError(null);
     try {
+      let finalImageUrl = form.image_url;
+      if (imageFile) {
+        const { upload } = await import("@vercel/blob/client");
+        const blob = await upload(imageFile.name, imageFile, {
+          access: "public",
+          handleUploadUrl: "/api/upload",
+        });
+        finalImageUrl = blob.url;
+      }
+
       await apiFetch("/api/questions", {
         method: "POST",
         body: JSON.stringify({
@@ -43,6 +56,7 @@ export default function CreateQuestionPage() {
           difficulty: form.difficulty,
           past_paper_year: form.past_paper_year ? parseInt(form.past_paper_year) : null,
           stem: form.stem,
+          image_url: finalImageUrl || null,
           options: {
             A: form.option_a,
             B: form.option_b,
@@ -125,6 +139,24 @@ export default function CreateQuestionPage() {
               placeholder="Type the question here..."
               className="w-full rounded-xl border border-[#2b3052] bg-[#0a0c14] px-3 py-2.5 text-sm text-white placeholder-zinc-600"
             />
+          </div>
+          <div>
+            <label className="mb-1 block text-xs font-semibold text-zinc-400">
+              Diagram / Image <span className="text-zinc-500">(optional)</span>
+            </label>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={(e) => {
+                if (e.target.files?.[0]) setImageFile(e.target.files[0]);
+              }}
+              className="w-full rounded-xl border border-[#2b3052] bg-[#0a0c14] px-3 py-2.5 text-sm text-white file:mr-4 file:rounded-full file:border-0 file:bg-[#2b3052] file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-emerald-600 cursor-pointer"
+            />
+            {imageFile && (
+              <p className="mt-2 text-xs text-emerald-400">
+                Selected: {imageFile.name} ({(imageFile.size / 1024).toFixed(1)} KB)
+              </p>
+            )}
           </div>
           <div className="space-y-2">
             <label className="block text-xs font-semibold text-zinc-400">Options</label>
