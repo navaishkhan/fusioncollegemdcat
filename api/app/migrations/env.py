@@ -38,7 +38,9 @@ def run_migrations_online() -> None:
             context.configure(connection=connection, target_metadata=target_metadata)
             with context.begin_transaction():
                 context.run_migrations()
-    except Exception:
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
         # Fall back to offline mode if DB is unreachable (e.g. during autogenerate)
         run_migrations_offline()
 

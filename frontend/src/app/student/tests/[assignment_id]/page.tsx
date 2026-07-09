@@ -19,12 +19,14 @@ import {
 } from "lucide-react";
 import { AuthGuard } from "@/components/MobileNav";
 import { apiFetch, getStoredUser } from "@/lib/api";
+import MarkdownRenderer from "@/components/MarkdownRenderer";
 
 interface QuestionData {
   id: string;
   subject: string;
   topic: string;
   stem: string;
+  image_url?: string | null;
   options: Record<string, string>;
 }
 
@@ -429,9 +431,20 @@ export default function ExamPage({
                     </div>
 
                     {/* Stem */}
-                    <p className="mb-6 text-base font-medium leading-relaxed text-slate-200">
-                      {currentQ.stem}
-                    </p>
+                    <div className="mb-6 text-base font-medium leading-relaxed text-slate-200">
+                      <MarkdownRenderer content={currentQ.stem} />
+                    </div>
+
+                    {/* Image if present */}
+                    {currentQ.image_url && (
+                      <div className="mb-6">
+                        <img 
+                          src={currentQ.image_url} 
+                          alt="Question diagram" 
+                          className="max-w-full rounded-xl border border-[#2b3052] shadow-lg"
+                        />
+                      </div>
+                    )}
 
                     {/* Options list */}
                     <div className="space-y-3">
@@ -450,7 +463,7 @@ export default function ExamPage({
                             }`}
                           >
                             <span
-                              className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-black border transition-all ${
+                              className={`flex h-6 w-6 shrink-0 mt-0.5 items-center justify-center rounded-full text-xs font-black border transition-all ${
                                 selected
                                   ? "bg-cyan-500 border-transparent text-slate-900"
                                   : "border-[#1e223c] text-slate-500"
@@ -458,7 +471,9 @@ export default function ExamPage({
                             >
                               {key}
                             </span>
-                            <span className="flex-1 font-medium">{value}</span>
+                            <div className="flex-1 font-medium -mt-0.5 pointer-events-none">
+                              <MarkdownRenderer content={value} />
+                            </div>
                           </motion.button>
                         );
                       })}

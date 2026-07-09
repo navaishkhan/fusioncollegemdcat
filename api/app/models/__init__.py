@@ -114,6 +114,7 @@ class Question(Base):
     difficulty: Mapped[Difficulty] = mapped_column(Enum(Difficulty), index=True)
     past_paper_year: Mapped[int | None] = mapped_column(Integer, nullable=True, index=True)
     stem: Mapped[str] = mapped_column(Text)
+    image_url: Mapped[str | None] = mapped_column(String(1024), nullable=True)
     options: Mapped[dict] = mapped_column(JSONB)
     correct_option: Mapped[str] = mapped_column(String(8))
     explanation: Mapped[str | None] = mapped_column(Text, nullable=True)

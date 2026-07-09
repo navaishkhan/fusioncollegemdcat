@@ -16,6 +16,11 @@ def get_engine():
     global _engine
     if _engine is None:
         url = settings.database_url.strip()
+        if url.startswith("postgres://"):
+            url = url.replace("postgres://", "postgresql+psycopg://", 1)
+        elif url.startswith("postgresql://"):
+            url = url.replace("postgresql://", "postgresql+psycopg://", 1)
+        
         _engine = create_engine(url, pool_pre_ping=True, pool_recycle=300)
     return _engine
 

@@ -44,6 +44,7 @@ class QuestionCreate(BaseModel):
     difficulty: Difficulty
     past_paper_year: int | None = None
     stem: str
+    image_url: str | None = None
     options: dict[str, str]
     correct_option: str
     explanation: str | None = None
