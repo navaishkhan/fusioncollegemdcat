@@ -21,6 +21,10 @@
     {
       "src": "/health",
       "dest": "api/index.py"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "frontend/$1"
     }
   ]
 }
