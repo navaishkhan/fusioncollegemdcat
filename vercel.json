@@ -12,5 +12,15 @@
         "maxLambdaSize": "50mb"
       }
     }
+  ],
+  "rewrites": [
+    { "source": "/health", "destination": "/api/index.py" },
+    { "source": "/api/auth/:path*", "destination": "/api/index.py" },
+    { "source": "/api/questions/:path*", "destination": "/api/index.py" },
+    { "source": "/api/questions", "destination": "/api/index.py" },
+    { "source": "/api/assignments/:path*", "destination": "/api/index.py" },
+    { "source": "/api/assignments", "destination": "/api/index.py" },
+    { "source": "/api/admin/:path*", "destination": "/api/index.py" },
+    { "source": "/api/users/:path*", "destination": "/api/index.py" }
   ]
 }
