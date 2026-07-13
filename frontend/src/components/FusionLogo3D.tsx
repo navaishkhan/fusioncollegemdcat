@@ -7,9 +7,9 @@ import * as THREE from 'three';
 
 // ─── 3D HERO LOGO ───────────────────────────────────────────────────────────
 const FusionLogo3D = () => {
-  const logoGroup = useRef();
-  const haloRef = useRef();
-  const rimLightRef = useRef();
+  const logoGroup = useRef<THREE.Group>(null);
+  const haloRef = useRef<THREE.Mesh>(null);
+  const rimLightRef = useRef<THREE.PointLight>(null);
   const smooth = useRef({ x: 0, y: 0, scale: 1 });
   const pulse = useRef(0);
   const hovered = useRef(false);
