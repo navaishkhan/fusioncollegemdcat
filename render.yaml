@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: fusion-mdcat-api
+    env: docker
+    dockerfilePath: api/Dockerfile
+    dockerContext: api
+    region: ohio
+    plan: free
+    envVars:
+      - key: DATABASE_URL
+        sync: false # You must input this in the Render Dashboard securely!
+      - key: JWT_SECRET
+        sync: false # You must input this in the Render Dashboard securely!

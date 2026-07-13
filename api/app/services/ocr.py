@@ -1,9 +1,11 @@
 import io
 import re
+import sys
 import pytesseract
 from PIL import Image
 
-pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
+if sys.platform.startswith('win'):
+    pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
 
 def parse_mcq_text(text: str) -> dict:
     """Parse MCQ from OCR text. Returns a dict with stem and options."""
