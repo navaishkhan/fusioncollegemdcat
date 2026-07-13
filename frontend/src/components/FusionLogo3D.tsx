@@ -46,7 +46,7 @@ const FusionLogo3D = () => {
 
     if (haloRef.current) {
       haloRef.current.rotation.z = t * (hovered.current ? 0.09 : 0.05);
-      haloRef.current.material.opacity = hovered.current ? 0.55 : 0.35;
+      (haloRef.current.material as THREE.Material).opacity = hovered.current ? 0.55 : 0.35;
     }
 
     if (rimLightRef.current) {
