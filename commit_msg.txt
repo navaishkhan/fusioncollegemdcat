@@ -1,3 +1,0 @@
-Fix bcrypt — use bcrypt directly instead of passlib (Vercel compat)
-
-Co-authored-by: CommandCodeBot <noreply@commandcode.ai>

@@ -4,6 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { motion } from "framer-motion";
 import { GraduationCap, ArrowRight, ShieldCheck } from "lucide-react";
+import { FusionCanvas } from "@/components/FusionLogo3D";
 
 export default function HomePage() {
   const containerVariants = {
@@ -50,18 +51,12 @@ export default function HomePage() {
         {/* Logo with Glow */}
         <motion.div
           variants={itemVariants}
-          whileHover={{ scale: 1.05, rotate: 2 }}
-          className="mb-6 relative group"
+          className="mb-4 relative group flex justify-center items-center"
         >
-          <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-cyan-500 to-violet-500 blur-md opacity-40 group-hover:opacity-75 transition-opacity" />
-          <Image
-            src="/logo.png"
-            alt="Fusion College Logo"
-            width={96}
-            height={96}
-            className="relative rounded-full border border-[#1e223c] bg-white object-contain shadow-2xl p-1"
-            priority
-          />
+          <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-cyan-500 to-violet-500 blur-xl opacity-20 group-hover:opacity-40 transition-opacity" />
+          <div className="relative w-40 h-40 z-20 cursor-pointer">
+            <FusionCanvas />
+          </div>
         </motion.div>
 
         {/* Brand Name */}

@@ -17,7 +17,7 @@ import {
   Target
 } from "lucide-react";
 import MobileNav, { AuthGuard } from "@/components/MobileNav";
-import { apiFetch } from "@/lib/api";
+import { apiFetch, formatSubjectName } from "@/lib/api";
 import { Card } from "@/components/Brand";
 
 interface ReviewItem {
@@ -369,7 +369,7 @@ export default function ResultPage({
                   <Card key={subject} className="hover:border-slate-800 transition-colors">
                     <div className="flex items-center justify-between">
                       <h3 className="text-sm font-bold capitalize text-white tracking-tight">
-                        {subject.replace("_", " ")}
+                        {formatSubjectName(subject)}
                       </h3>
                       <span className="text-sm font-black text-cyan-400">
                         {stat.score.toFixed(1)} pts

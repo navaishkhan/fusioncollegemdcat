@@ -115,8 +115,9 @@ class TestResponse(BaseModel):
 class TestAssignmentCreate(BaseModel):
     test_id: UUID
     batch_id: UUID
-    start_at: datetime
-    end_at: datetime
+    start_at: datetime | None = None
+    end_at: datetime | None = None
+    valid_for_minutes: int | None = None
 
 
 class TestAssignmentResponse(TestAssignmentCreate):

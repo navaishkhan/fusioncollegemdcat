@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import MobileNav, { AuthGuard } from "@/components/MobileNav";
 import { Card, PageShell } from "@/components/Brand";
-import { apiFetch } from "@/lib/api";
+import { apiFetch, formatSubjectName } from "@/lib/api";
 
 interface WeakTopic {
   topic: string;
@@ -115,7 +115,7 @@ export default function AnalyticsPage() {
               {trends[trends.length - 1].subject_breakdown ? (
                 Object.entries(trends[trends.length - 1].subject_breakdown!).map(([subject, data]) => (
                   <div key={subject} className="flex items-center justify-between py-1.5">
-                    <span className="text-sm capitalize text-zinc-300">{subject.replace("_", " ")}</span>
+                    <span className="text-sm capitalize text-zinc-300">{formatSubjectName(subject)}</span>
                     <span className="text-sm font-bold text-cyan-400">{data.score.toFixed(1)}</span>
                   </div>
                 ))

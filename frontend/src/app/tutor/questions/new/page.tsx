@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import MobileNav, { AuthGuard } from "@/components/MobileNav";
 import { PageShell } from "@/components/Brand";
 import { apiFetch } from "@/lib/api";
+import { Camera, Loader2 } from "lucide-react";
 import MarkdownRenderer from "@/components/MarkdownRenderer";
 
 const SUBJECTS = ["bio", "chem", "physics", "english", "logical_reasoning"] as const;
@@ -28,10 +29,52 @@ export default function CreateQuestionPage() {
   });
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [scanning, setScanning] = useState(false);
   const [imageFile, setImageFile] = useState<File | null>(null);
 
   const update = (field: string, value: string) =>
     setForm((prev) => ({ ...prev, [field]: value }));
+
+  const handleImageScan = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setImageFile(file);
+    setScanning(true);
+    setError(null);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      
+      // We use standard fetch here to send FormData easily
+      const res = await fetch("/api/questions/extract-from-image", {
+        method: "POST",
+        body: formData,
+        headers: {
+          Authorization: `Bearer ${JSON.parse(localStorage.getItem("fusion_mdcat_tokens") || "{}").access_token}`,
+        },
+      });
+
+      if (!res.ok) {
+        throw new Error("Failed to scan image");
+      }
+
+      const data = await res.json();
+      
+      setForm(prev => ({
+        ...prev,
+        stem: data.stem || prev.stem,
+        option_a: data.options?.A || prev.option_a,
+        option_b: data.options?.B || prev.option_b,
+        option_c: data.options?.C || prev.option_c,
+        option_d: data.options?.D || prev.option_d,
+      }));
+    } catch (err: any) {
+      setError(err.message || "Could not parse image");
+    } finally {
+      setScanning(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -78,6 +121,29 @@ export default function CreateQuestionPage() {
   return (
     <AuthGuard roles={["admin", "tutor"]}>
       <PageShell title="New Question">
+        {/* Camera Scan Section */}
+        <div className="mb-6">
+          <label className="mb-2 block text-xs font-bold text-zinc-400 uppercase tracking-widest">
+            Fast Extract
+          </label>
+          <div className="relative">
+            <input 
+              type="file" 
+              accept="image/*" 
+              capture="environment"
+              onChange={handleImageScan}
+              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" 
+            />
+            <div className={`flex w-full items-center justify-center gap-3 rounded-2xl glossy-border bg-gradient-to-r from-emerald-600/20 to-teal-600/20 py-4 text-sm font-bold text-emerald-400 transition-all ${scanning ? 'animate-pulse' : 'hover:bg-emerald-600/30'}`}>
+              {scanning ? <Loader2 className="w-5 h-5 animate-spin" /> : <Camera className="w-5 h-5" />}
+              <span>{scanning ? "Analyzing Image..." : "Scan MCQ with Camera"}</span>
+            </div>
+          </div>
+          <p className="text-[10px] text-zinc-500 mt-2 font-semibold text-center">
+            Upload or snap a picture of an MCQ to auto-fill the form below.
+          </p>
+        </div>
+
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-3">
             <div>

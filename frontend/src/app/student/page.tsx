@@ -138,8 +138,9 @@ export default function StudentDashboard() {
                           </p>
                         </div>
                       </div>
-                      <button className="flex items-center gap-1 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 px-4 py-2 text-xs font-bold text-white shadow-md shadow-emerald-500/10 hover:shadow-emerald-500/20 transition-all cursor-pointer">
-                        <span>Begin</span>
+                      <button className="flex items-center gap-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 px-5 py-2 text-xs font-bold text-emerald-400 hover:bg-emerald-500 hover:text-white transition-all duration-300 shadow-[0_0_15px_rgba(16,185,129,0.15)] hover:shadow-[0_0_20px_rgba(16,185,129,0.4)] cursor-pointer relative overflow-hidden group">
+                        <span className="relative z-10">Begin</span>
+                        <div className="absolute inset-0 bg-gradient-to-r from-emerald-400 to-teal-400 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                       </button>
                     </div>
                   </Card>
@@ -178,8 +179,9 @@ export default function StudentDashboard() {
                           </p>
                         </div>
                       </div>
-                      <button className="flex items-center gap-1 rounded-xl bg-[#7c3aed]/15 border border-[#7c3aed]/30 px-3.5 py-2 text-xs font-bold text-cyan-400 hover:bg-[#7c3aed]/25 transition-all cursor-pointer">
-                        <span>View</span>
+                      <button className="flex items-center gap-1 rounded-full bg-cyan-500/10 border border-cyan-500/30 px-5 py-2 text-xs font-bold text-cyan-400 hover:bg-cyan-500 hover:text-white transition-all duration-300 shadow-[0_0_15px_rgba(6,182,212,0.15)] hover:shadow-[0_0_20px_rgba(6,182,212,0.4)] cursor-pointer relative overflow-hidden group">
+                        <span className="relative z-10">View</span>
+                        <div className="absolute inset-0 bg-gradient-to-r from-cyan-400 to-blue-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                       </button>
                     </div>
                   </Card>
@@ -202,7 +204,7 @@ export default function StudentDashboard() {
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   onClick={() => router.push("/student/tests")}
-                  className="mt-6 rounded-xl bg-gradient-to-r from-cyan-500 to-violet-600 px-6 py-3 text-xs font-bold text-white shadow-md cursor-pointer"
+                  className="mt-6 rounded-full glossy-border bg-gradient-to-r from-cyan-500/80 to-violet-600/80 hover:from-cyan-400 hover:to-violet-500 px-7 py-3.5 text-xs font-bold text-white shadow-[0_0_20px_rgba(6,182,212,0.3)] cursor-pointer transition-all duration-300"
                 >
                   View Assigned Tests
                 </motion.button>

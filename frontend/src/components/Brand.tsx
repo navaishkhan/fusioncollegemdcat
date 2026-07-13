@@ -45,8 +45,8 @@ export function PageShell({
   title?: string;
 }) {
   return (
-    <div className="min-h-screen bg-[#080a14] bg-grid-glow bg-dot-pattern safe-top safe-bottom md:pl-64">
-      <header className="sticky top-0 z-20 border-b border-[#1e223c] bg-[#080a14]/80 px-4 py-3 backdrop-blur-xl">
+    <div className="min-h-screen bg-[#030409] bg-grid-glow bg-noise safe-top safe-bottom md:pl-64">
+      <header className="sticky top-0 z-20 border-b border-[rgba(255,255,255,0.08)] bg-[#030409]/60 px-4 py-3 backdrop-blur-3xl shadow-sm">
         <div className="mx-auto max-w-lg md:max-w-4xl flex items-center justify-between">
           <BrandHeader />
         </div>
@@ -55,7 +55,7 @@ export function PageShell({
             <motion.h1 
               initial={{ opacity: 0, x: -10 }}
               animate={{ opacity: 1, x: 0 }}
-              className="text-xl font-extrabold text-white tracking-tight"
+              className="text-2xl font-editorial text-white tracking-tight"
             >
               {title}
             </motion.h1>
@@ -88,7 +88,7 @@ export function Card({
       whileHover={onClick ? { y: -3, scale: 1.015 } : {}}
       whileTap={onClick ? { scale: 0.985 } : {}}
       onClick={onClick}
-      className={`glass-panel rounded-2xl p-4 transition-shadow hover:shadow-lg hover:shadow-cyan-500/5 ${onClick ? "cursor-pointer" : ""} ${className}`}
+      className={`glass-panel glossy-border rounded-3xl p-5 backdrop-blur-3xl transition-all duration-300 hover:shadow-2xl hover:shadow-cyan-500/10 ${onClick ? "cursor-pointer" : ""} ${className}`}
     >
       {children}
     </motion.div>
@@ -107,13 +107,13 @@ export function StatPill({
       initial={{ scale: 0.95, opacity: 0 }}
       animate={{ scale: 1, opacity: 1 }}
       transition={{ duration: 0.3 }}
-      className="rounded-xl border border-[#1e223c] bg-[#05060b]/60 px-4 py-3 relative overflow-hidden group hover:border-[#7c3aed]/50 transition-colors"
+      className="rounded-3xl glossy-border bg-[rgba(10,11,16,0.5)] backdrop-blur-2xl px-5 py-4 relative overflow-hidden group hover:border-[rgba(255,255,255,0.15)] transition-colors"
     >
-      <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-[#7c3aed]/5 to-[#06b6d4]/5 rounded-full blur-xl pointer-events-none group-hover:scale-125 transition-transform" />
-      <div className="text-[10px] font-bold uppercase tracking-wider text-zinc-500 relative z-10">
+      <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-[#7c3aed]/10 to-[#06b6d4]/10 rounded-full blur-2xl pointer-events-none group-hover:scale-150 transition-transform duration-500" />
+      <div className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 relative z-10 mb-2">
         {label}
       </div>
-      <div className="text-xl font-black text-cyan-400 mt-1 relative z-10 tracking-tight">
+      <div className="text-2xl font-editorial text-shimmer relative z-10">
         {value}
       </div>
     </motion.div>

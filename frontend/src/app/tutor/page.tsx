@@ -35,8 +35,8 @@ export default function TutorDashboard() {
   return (
     <AuthGuard roles={["admin", "tutor"]}>
       <PageShell title="Tutor Dashboard">
-        <p className="mb-4 text-sm text-zinc-400">
-          Welcome, {user?.full_name}
+        <p className="mb-6 text-sm text-zinc-400 font-editorial">
+          Welcome, <span className="text-white font-bold">{user?.full_name}</span>
         </p>
 
         <div className="mb-4 grid grid-cols-2 gap-3">
@@ -48,16 +48,16 @@ export default function TutorDashboard() {
 
         {error && <p className="mb-3 text-sm text-red-400">{error}</p>}
 
-        <div className="mb-4 grid grid-cols-2 gap-2">
+        <div className="mb-6 grid grid-cols-2 gap-3">
           <button
             onClick={() => router.push("/tutor/questions/new")}
-            className="rounded-xl bg-[#3d4193] py-3 text-sm font-semibold text-white"
+            className="rounded-full glossy-border bg-gradient-to-br from-violet-600/20 to-fuchsia-600/20 py-3 text-sm font-editorial font-bold text-violet-300 hover:bg-violet-600 hover:text-white transition-all duration-300 shadow-[0_0_15px_rgba(124,58,237,0.15)] hover:shadow-[0_0_25px_rgba(124,58,237,0.4)] cursor-pointer"
           >
             + New Question
           </button>
           <button
             onClick={() => router.push("/tutor/tests/new")}
-            className="rounded-xl bg-emerald-600 py-3 text-sm font-bold text-white"
+            className="rounded-full glossy-border bg-gradient-to-br from-emerald-600/20 to-cyan-600/20 py-3 text-sm font-editorial font-bold text-emerald-300 hover:bg-emerald-600 hover:text-white transition-all duration-300 shadow-[0_0_15px_rgba(16,185,129,0.15)] hover:shadow-[0_0_25px_rgba(16,185,129,0.4)] cursor-pointer"
           >
             + New Test
           </button>
@@ -65,7 +65,7 @@ export default function TutorDashboard() {
 
         <button
           onClick={() => router.push("/tutor/analytics")}
-          className="mb-4 w-full rounded-xl bg-[#16192b] py-2.5 text-sm text-zinc-300"
+          className="mb-6 w-full rounded-full glossy-border bg-[rgba(10,11,16,0.6)] py-3.5 text-sm font-editorial font-bold text-zinc-300 hover:bg-[rgba(255,255,255,0.05)] transition-all cursor-pointer"
         >
           📊 View Analytics
         </button>
@@ -108,7 +108,7 @@ export default function TutorDashboard() {
             clearAuth();
             window.location.href = "/login";
           }}
-          className="mt-4 w-full rounded-xl bg-[#16192b] py-3 text-sm text-zinc-400"
+          className="mt-6 w-full rounded-full glossy-border bg-[rgba(255,50,50,0.05)] py-3 text-sm font-editorial font-bold text-red-400/80 hover:bg-[rgba(255,50,50,0.15)] hover:text-red-400 transition-all cursor-pointer"
         >
           Sign out
         </button>

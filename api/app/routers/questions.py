@@ -1,12 +1,13 @@
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile, File
 from sqlalchemy.orm import Session
 
 from app.core.deps import require_roles
 from app.database import get_db
 from app.models import Difficulty, Question, Subject, User, UserRole
 from app.schemas import QuestionCreate, QuestionResponse
+from app.services.ocr import extract_text_from_image
 
 router = APIRouter(prefix="/questions", tags=["questions"])
 
@@ -47,6 +48,21 @@ def create_question(
     db.commit()
     db.refresh(question)
     return question
+
+
+@router.post("/extract-from-image")
+async def extract_question_from_image(
+    file: UploadFile = File(...),
+    _: User = Depends(require_roles(UserRole.ADMIN, UserRole.TUTOR)),
+):
+    """Extracts stem and options from an uploaded image using local OCR."""
+    if not file.content_type.startswith("image/"):
+        raise HTTPException(status_code=400, detail="File must be an image")
+        
+    image_bytes = await file.read()
+    parsed_data = extract_text_from_image(image_bytes)
+    return parsed_data
+
 
 
 @router.get("/{question_id}", response_model=QuestionResponse)

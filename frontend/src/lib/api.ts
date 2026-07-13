@@ -116,3 +116,15 @@ export function dashboardPath(role: UserRole): string {
       return "/login";
   }
 }
+
+export function formatSubjectName(code: string | undefined | null): string {
+  if (!code) return "";
+  const map: Record<string, string> = {
+    bio: "Biology",
+    chem: "Chemistry",
+    physics: "Physics",
+    english: "English",
+    logical_reasoning: "Logical Reasoning",
+  };
+  return map[code.toLowerCase()] || code.toUpperCase();
+}

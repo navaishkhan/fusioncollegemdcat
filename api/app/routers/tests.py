@@ -195,11 +195,44 @@ def assign_test(
     db: Session = Depends(get_db),
     user: User = Depends(require_roles(UserRole.ADMIN, UserRole.TUTOR)),
 ):
-    if payload.end_at <= payload.start_at:
+    now = datetime.now(timezone.utc)
+    
+    if payload.valid_for_minutes is not None:
+        start_at = now
+        end_at = now + timedelta(minutes=payload.valid_for_minutes)
+    else:
+        if payload.start_at is None or payload.end_at is None:
+            raise HTTPException(status_code=400, detail="Provide either valid_for_minutes, or both start_at and end_at")
+        start_at = payload.start_at
+        end_at = payload.end_at
+
+    if end_at <= start_at:
         raise HTTPException(status_code=400, detail="end_at must be after start_at")
 
-    assignment = TestAssignment(**payload.model_dump(), created_by_id=user.id)
+    assignment = TestAssignment(
+        test_id=payload.test_id,
+        batch_id=payload.batch_id,
+        start_at=start_at,
+        end_at=end_at,
+        created_by_id=user.id
+    )
     db.add(assignment)
+    db.commit()
+    db.refresh(assignment)
+    return assignment
+
+
+@router.patch("/assignments/{assignment_id}/close", response_model=TestAssignmentResponse)
+def close_assignment(
+    assignment_id: UUID,
+    db: Session = Depends(get_db),
+    user: User = Depends(require_roles(UserRole.ADMIN, UserRole.TUTOR)),
+):
+    assignment = db.get(TestAssignment, assignment_id)
+    if not assignment:
+        raise HTTPException(status_code=404, detail="Assignment not found")
+    
+    assignment.end_at = datetime.now(timezone.utc)
     db.commit()
     db.refresh(assignment)
     return assignment

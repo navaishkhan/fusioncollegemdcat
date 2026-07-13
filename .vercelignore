@@ -1,0 +1,10 @@
+.venv/
+__pycache__/
+*.pyc
+.env
+.env.local
+backend/
+Books/
+_ocr_cache/
+answer_keys_to_ocr/
+*.log
