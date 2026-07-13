@@ -13,8 +13,9 @@ from app.core.security import (
     verify_password,
 )
 from app.database import get_db
-from app.models import PasswordResetToken, User, UserRole
+from app.models import PasswordResetToken, PasswordResetRequest, User, UserRole
 from app.schemas import (
+    AdminResetPasswordRequest,
     ChangePasswordRequest,
     ForgotPasswordRequest,
     LoginRequest,
@@ -134,20 +135,12 @@ def forgot_password(
 
     token = uuid4().hex + uuid4().hex
     expires = datetime.now(timezone.utc) + timedelta(hours=1)
-    db.add(PasswordResetToken(user_id=user.id, token=token, expires_at=expires))
+    # Create admin notification row
+    db.add(PasswordResetRequest(user_id=user.id, status="pending"))
     db.commit()
 
-    reset_url = f"https://fusionmdcat.vercel.app/reset-password?token={token}"
+    return {"ok": True, "message": "Your request has been sent to the admin. You will be contacted shortly."}
 
-    # Log the token to console (in production, send email via SendGrid/Mailgun etc.)
-    print(f"\n{'='*60}")
-    print(f" PASSWORD RESET for {payload.email}")
-    print(f" Token: {token}")
-    print(f" Reset URL: {reset_url}")
-    print(f" Expires: {expires.isoformat()}")
-    print(f"{'='*60}\n")
-
-    return {"ok": True, "message": "If the email exists, a reset link has been sent."}
 
 
 @router.post("/reset-password")

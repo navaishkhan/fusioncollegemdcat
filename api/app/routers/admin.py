@@ -5,9 +5,10 @@ from sqlalchemy import cast, case, Integer, func
 from sqlalchemy.orm import Session
 
 from app.core.deps import require_roles
+from app.core.security import hash_password
 from app.database import get_db
-from app.models import AttemptAnswer, AttemptStatus, Batch, Question, Test, TestAttempt, User, UserRole
-from app.schemas import AdminUserUpdate, UserResponse, WeakTopic
+from app.models import AttemptAnswer, AttemptStatus, Batch, PasswordResetRequest, Question, Test, TestAttempt, User, UserRole
+from app.schemas import AdminResetPasswordRequest, AdminUserUpdate, PasswordResetRequestResponse, UserResponse, WeakTopic
 
 router = APIRouter(prefix="/admin", tags=["admin"])
 
@@ -61,6 +62,59 @@ def update_user(
     db.commit()
     db.refresh(user)
     return user
+
+
+@router.get("/password-reset-requests")
+def list_password_reset_requests(
+    db: Session = Depends(get_db),
+    _: User = Depends(require_roles(UserRole.ADMIN)),
+):
+    requests = (
+        db.query(PasswordResetRequest)
+        .filter(PasswordResetRequest.status == "pending")
+        .order_by(PasswordResetRequest.created_at.desc())
+        .all()
+    )
+    return [
+        {
+            "id": str(r.id),
+            "user_id": str(r.user_id),
+            "status": r.status,
+            "created_at": r.created_at.isoformat(),
+            "user_name": r.user.full_name,
+            "user_email": r.user.email,
+        }
+        for r in requests
+    ]
+
+
+@router.post("/users/{user_id}/reset-password")
+def admin_reset_password(
+    user_id: UUID,
+    payload: AdminResetPasswordRequest,
+    db: Session = Depends(get_db),
+    _: User = Depends(require_roles(UserRole.ADMIN)),
+):
+    user = db.get(User, user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    user.hashed_password = hash_password(payload.new_password)
+    db.commit()
+    return {"ok": True}
+
+
+@router.patch("/password-reset-requests/{req_id}/resolve")
+def resolve_password_reset_request(
+    req_id: UUID,
+    db: Session = Depends(get_db),
+    _: User = Depends(require_roles(UserRole.ADMIN)),
+):
+    req = db.get(PasswordResetRequest, req_id)
+    if not req:
+        raise HTTPException(status_code=404, detail="Request not found")
+    req.status = "resolved"
+    db.commit()
+    return {"ok": True}
 
 
 @router.get("/stats")
