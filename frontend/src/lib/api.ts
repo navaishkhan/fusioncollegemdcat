@@ -90,14 +90,26 @@ export async function apiFetch<T>(
     const retryRes = await fetch(path, { ...options, headers });
     if (!retryRes.ok) {
       const err = await retryRes.json().catch(() => ({ detail: retryRes.statusText }));
-      throw new Error(err.detail || "Request failed");
+      let errorMsg = err.detail || "Request failed";
+      if (Array.isArray(err.detail)) {
+        errorMsg = err.detail[0]?.msg || "Validation error";
+      } else if (typeof err.detail === "object") {
+        errorMsg = JSON.stringify(err.detail);
+      }
+      throw new Error(errorMsg);
     }
     return retryRes.json();
   }
 
   if (!res.ok) {
     const err = await res.json().catch(() => ({ detail: res.statusText }));
-    throw new Error(err.detail || "Request failed");
+    let errorMsg = err.detail || "Request failed";
+    if (Array.isArray(err.detail)) {
+      errorMsg = err.detail[0]?.msg || "Validation error";
+    } else if (typeof err.detail === "object") {
+      errorMsg = JSON.stringify(err.detail);
+    }
+    throw new Error(errorMsg);
   }
   return res.json();
 }
