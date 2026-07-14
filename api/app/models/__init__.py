@@ -70,6 +70,11 @@ class AttemptStatus(str, enum.Enum):
     TIMED_OUT = "timed_out"
 
 
+class MarkingMode(str, enum.Enum):
+    AUTO = "auto"
+    MANUAL = "manual"
+
+
 class User(Base):
     __tablename__ = "users"
 
@@ -148,6 +153,7 @@ class Test(Base):
     negative_marking: Mapped[float] = mapped_column(Float, default=-0.25)
     randomize_order: Mapped[bool] = mapped_column(Boolean, default=True)
     show_review_after_submit: Mapped[bool] = mapped_column(Boolean, default=True)
+    marking_mode: Mapped[MarkingMode] = mapped_column(Enum(MarkingMode), default=MarkingMode.AUTO)
     created_by_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("users.id"))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
@@ -218,3 +224,22 @@ class AttemptAnswer(Base):
     is_correct: Mapped[bool | None] = mapped_column(Boolean, nullable=True)
 
     attempt: Mapped["TestAttempt"] = relationship(back_populates="answers")
+
+
+class QuestionReview(Base):
+    __tablename__ = "question_reviews"
+    __table_args__ = (UniqueConstraint("student_id", "question_id", name="uq_student_question_review"),)
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    student_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("users.id"))
+    question_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("questions.id"))
+    reason: Mapped[str] = mapped_column(Text)
+    status: Mapped[str] = mapped_column(String(16), default="pending", index=True)  # pending | resolved | rejected
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    resolved_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    resolved_by_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=True)
+    admin_notes: Mapped[str | None] = mapped_column(Text, nullable=True)
+
+    student: Mapped["User"] = relationship(foreign_keys=[student_id])
+    question: Mapped["Question"] = relationship()
+    resolved_by: Mapped["User | None"] = relationship(foreign_keys=[resolved_by_id])

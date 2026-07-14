@@ -21,6 +21,16 @@ from app.schemas import AnswerUpdate
 
 def grade_attempt(db: Session, attempt: TestAttempt) -> TestAttempt:
     test = attempt.assignment.test
+    
+    # If manual marking mode, just mark as submitted without grading
+    if test.marking_mode.value == "manual":
+        attempt.submitted_at = datetime.now(timezone.utc)
+        attempt.status = AttemptStatus.SUBMITTED
+        db.commit()
+        db.refresh(attempt)
+        return attempt
+    
+    # Auto grading mode
     answers = db.query(AttemptAnswer).filter(AttemptAnswer.attempt_id == attempt.id).all()
     question_map = {tq.question_id: tq.question for tq in test.questions}
 
@@ -117,6 +127,7 @@ def create_test_with_questions(db: Session, payload, creator_id: UUID) -> Test:
         negative_marking=payload.negative_marking or settings.negative_marking_default,
         randomize_order=payload.randomize_order,
         show_review_after_submit=payload.show_review_after_submit,
+        marking_mode=payload.marking_mode,
         created_by_id=creator_id,
     )
     db.add(test)

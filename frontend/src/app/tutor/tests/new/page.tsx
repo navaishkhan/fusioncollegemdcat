@@ -30,6 +30,8 @@ export default function CreateTestPage() {
   const [negativeMarking, setNegativeMarking] = useState<number | string>(-0.25);
   const [randomize, setRandomize] = useState(true);
   const [showReview, setShowReview] = useState(true);
+  const [markingMode, setMarkingMode] = useState<"auto" | "manual">("auto");
+  const [negativeMarkingMode, setNegativeMarkingMode] = useState<"preset" | "custom">("preset");
 
   // Manual pick state
   const [questions, setQuestions] = useState<Question[]>([]);
@@ -84,6 +86,7 @@ export default function CreateTestPage() {
         negative_marking: negativeMarking,
         randomize_order: randomize,
         show_review_after_submit: showReview,
+        marking_mode: markingMode,
       };
 
       if (tab === "manual") {
@@ -167,11 +170,54 @@ export default function CreateTestPage() {
               <label className="mb-1 block text-xs font-semibold text-zinc-400">
                 Negative Marking
               </label>
-              <NumberInput
-                value={negativeMarking}
-                onChange={(val) => setNegativeMarking(val)}
-                step={0.25}
-              />
+              <div className="flex gap-2 mb-2">
+                <button
+                  type="button"
+                  onClick={() => setNegativeMarkingMode("preset")}
+                  className={`flex-1 rounded-lg px-2 py-1.5 text-[10px] font-semibold ${
+                    negativeMarkingMode === "preset"
+                      ? "bg-cyan-500/20 border border-cyan-500/50 text-cyan-400"
+                      : "bg-[#16192b] border border-[#2b3052] text-zinc-400"
+                  }`}
+                >
+                  Preset
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setNegativeMarkingMode("custom")}
+                  className={`flex-1 rounded-lg px-2 py-1.5 text-[10px] font-semibold ${
+                    negativeMarkingMode === "custom"
+                      ? "bg-cyan-500/20 border border-cyan-500/50 text-cyan-400"
+                      : "bg-[#16192b] border border-[#2b3052] text-zinc-400"
+                  }`}
+                >
+                  Custom
+                </button>
+              </div>
+              {negativeMarkingMode === "preset" ? (
+                <div className="grid grid-cols-3 gap-1.5">
+                  {[0, -0.25, -0.5].map((val) => (
+                    <button
+                      key={val}
+                      type="button"
+                      onClick={() => setNegativeMarking(val)}
+                      className={`rounded-lg px-2 py-1.5 text-[10px] font-semibold ${
+                        negativeMarking === val
+                          ? "bg-emerald-500/20 border border-emerald-500/50 text-emerald-400"
+                          : "bg-[#16192b] border border-[#2b3052] text-zinc-400 hover:border-zinc-500"
+                      }`}
+                    >
+                      {val === 0 ? "None" : val.toString()}
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <NumberInput
+                  value={negativeMarking}
+                  onChange={(val) => setNegativeMarking(val)}
+                  step={0.25}
+                />
+              )}
             </div>
             <div className="flex flex-col justify-end gap-2 pb-1">
               <label className="flex items-center gap-2">
@@ -193,6 +239,38 @@ export default function CreateTestPage() {
                 <span className="text-xs text-zinc-400">Show review</span>
               </label>
             </div>
+          </div>
+          <div>
+            <label className="mb-1 block text-xs font-semibold text-zinc-400">Marking Mode</label>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => setMarkingMode("auto")}
+                className={`flex-1 rounded-lg border px-3 py-2 text-xs font-semibold ${
+                  markingMode === "auto"
+                    ? "border-cyan-500 bg-cyan-500/20 text-cyan-400"
+                    : "border-[#2b3052] bg-[#16192b] text-zinc-400"
+                }`}
+              >
+                Auto (System)
+              </button>
+              <button
+                type="button"
+                onClick={() => setMarkingMode("manual")}
+                className={`flex-1 rounded-lg border px-3 py-2 text-xs font-semibold ${
+                  markingMode === "manual"
+                    ? "border-cyan-500 bg-cyan-500/20 text-cyan-400"
+                    : "border-[#2b3052] bg-[#16192b] text-zinc-400"
+                }`}
+              >
+                Manual (Teacher)
+              </button>
+            </div>
+            {markingMode === "manual" && (
+              <p className="mt-1 text-[10px] text-amber-400">
+                You will need to manually grade each student's submission
+              </p>
+            )}
           </div>
 
           {/* Tab selector */}

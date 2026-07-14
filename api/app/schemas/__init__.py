@@ -3,7 +3,7 @@ from uuid import UUID
 
 from pydantic import BaseModel, EmailStr, Field
 
-from app.models import AttemptStatus, Difficulty, Subject, UserRole
+from app.models import AttemptStatus, Difficulty, MarkingMode, Subject, UserRole
 
 
 class TokenResponse(BaseModel):
@@ -98,6 +98,7 @@ class TestCreate(BaseModel):
     negative_marking: float = -0.25
     randomize_order: bool = True
     show_review_after_submit: bool = True
+    marking_mode: MarkingMode = MarkingMode.AUTO
     question_ids: list[UUID] | None = None
     auto_generate: list[AutoGenerateRules] | None = None
 
@@ -111,6 +112,7 @@ class TestResponse(BaseModel):
     negative_marking: float
     randomize_order: bool
     show_review_after_submit: bool
+    marking_mode: MarkingMode
     question_count: int
 
     model_config = {"from_attributes": True}
@@ -153,6 +155,11 @@ class AnswerUpdate(BaseModel):
     question_id: UUID
     selected_option: str | None = None
     marked_for_review: bool = False
+
+
+class ManualGradeUpdate(BaseModel):
+    question_id: UUID
+    is_correct: bool
 
 
 class AttemptResultResponse(BaseModel):
@@ -208,5 +215,24 @@ class PasswordResetRequestResponse(BaseModel):
     created_at: datetime
     user_name: str
     user_email: str
+
+    model_config = {"from_attributes": True}
+
+
+class QuestionReviewCreate(BaseModel):
+    question_id: UUID
+    reason: str
+
+
+class QuestionReviewResponse(BaseModel):
+    id: UUID
+    student_id: UUID
+    question_id: UUID
+    reason: str
+    status: str
+    created_at: datetime
+    resolved_at: datetime | None
+    resolved_by_id: UUID | None
+    admin_notes: str | None
 
     model_config = {"from_attributes": True}

@@ -1,12 +1,12 @@
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile, File
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 
-from app.core.deps import require_roles
+from app.core.deps import get_current_user, require_roles
 from app.database import get_db
-from app.models import Difficulty, Question, Subject, User, UserRole
-from app.schemas import QuestionCreate, QuestionResponse
+from app.models import Difficulty, Question, QuestionReview, Subject, User, UserRole
+from app.schemas import QuestionCreate, QuestionResponse, QuestionReviewCreate, QuestionReviewResponse
 from app.services.ocr import extract_text_from_image
 
 router = APIRouter(prefix="/questions", tags=["questions"])
@@ -150,3 +150,96 @@ def purge_old_questions(
     query.update({"is_active": False}, synchronize_session="fetch")
     db.commit()
     return {"deactivated": count, "filter": {"created_before": created_before, "subject": subject.value if subject else None}}
+
+
+@router.post("/{question_id}/review", response_model=QuestionReviewResponse)
+def create_question_review(
+    question_id: UUID,
+    payload: QuestionReviewCreate,
+    db: Session = Depends(get_db),
+    user: User = Depends(require_roles(UserRole.STUDENT)),
+):
+    """Students can request a review of a question they believe is incorrect."""
+    question = db.get(Question, question_id)
+    if not question:
+        raise HTTPException(status_code=404, detail="Question not found")
+    
+    # Check if student already has a pending review for this question
+    existing = db.query(QuestionReview).filter(
+        QuestionReview.student_id == user.id,
+        QuestionReview.question_id == question_id,
+        QuestionReview.status == "pending"
+    ).first()
+    if existing:
+        raise HTTPException(status_code=400, detail="You already have a pending review for this question")
+    
+    review = QuestionReview(
+        student_id=user.id,
+        question_id=question_id,
+        reason=payload.reason,
+        status="pending"
+    )
+    db.add(review)
+    db.commit()
+    db.refresh(review)
+    return review
+
+
+@router.get("/reviews/my")
+def get_my_reviews(
+    db: Session = Depends(get_db),
+    user: User = Depends(require_roles(UserRole.STUDENT)),
+):
+    """Students can view their own question reviews."""
+    reviews = db.query(QuestionReview).filter(
+        QuestionReview.student_id == user.id
+    ).order_by(QuestionReview.created_at.desc()).all()
+    return reviews
+
+
+@router.get("/reviews/pending")
+def get_pending_reviews(
+    db: Session = Depends(get_db),
+    _: User = Depends(require_roles(UserRole.ADMIN, UserRole.TUTOR)),
+):
+    """Admins/tutors can view pending question reviews."""
+    reviews = (
+        db.query(QuestionReview)
+        .filter(QuestionReview.status == "pending")
+        .options(
+            joinedload(QuestionReview.student),
+            joinedload(QuestionReview.question)
+        )
+        .order_by(QuestionReview.created_at.desc())
+        .all()
+    )
+    return reviews
+
+
+@router.patch("/reviews/{review_id}")
+def update_question_review(
+    review_id: UUID,
+    status: str = Query(description="New status: resolved, rejected"),
+    admin_notes: str | None = None,
+    db: Session = Depends(get_db),
+    user: User = Depends(require_roles(UserRole.ADMIN, UserRole.TUTOR)),
+):
+    """Admins/tutors can resolve or reject question reviews."""
+    from datetime import datetime, timezone
+    
+    review = db.get(QuestionReview, review_id)
+    if not review:
+        raise HTTPException(status_code=404, detail="Review not found")
+    
+    if status not in ["resolved", "rejected"]:
+        raise HTTPException(status_code=400, detail="Status must be 'resolved' or 'rejected'")
+    
+    review.status = status
+    review.resolved_at = datetime.now(timezone.utc)
+    review.resolved_by_id = user.id
+    if admin_notes:
+        review.admin_notes = admin_notes
+    
+    db.commit()
+    db.refresh(review)
+    return review

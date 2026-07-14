@@ -26,6 +26,8 @@ export default function AssignTestPage({
   const [startTime, setStartTime] = useState("");
   const [endDate, setEndDate] = useState("");
   const [endTime, setEndTime] = useState("");
+  const [durationMode, setDurationMode] = useState<"custom" | "preset">("preset");
+  const [selectedDuration, setSelectedDuration] = useState<number>(60);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
@@ -34,6 +36,38 @@ export default function AssignTestPage({
       .then(setBatches)
       .catch((e) => setError(e.message));
   }, []);
+
+  // Set default current datetime on mount
+  useEffect(() => {
+    const now = new Date();
+    const localDate = now.toISOString().split('T')[0];
+    const localTime = now.toTimeString().slice(0, 5);
+    setStartDate(localDate);
+    setStartTime(localTime);
+    
+    // Calculate end time based on selected duration
+    const endTime = new Date(now.getTime() + selectedDuration * 60000);
+    setEndDate(endTime.toISOString().split('T')[0]);
+    setEndTime(endTime.toTimeString().slice(0, 5));
+  }, [selectedDuration]);
+
+  const handleDurationChange = (minutes: number) => {
+    setSelectedDuration(minutes);
+    const now = new Date(`${startDate}T${startTime}`);
+    const endTime = new Date(now.getTime() + minutes * 60000);
+    setEndDate(endTime.toISOString().split('T')[0]);
+    setEndTime(endTime.toTimeString().slice(0, 5));
+  };
+
+  const handleStartTimeChange = (time: string) => {
+    setStartTime(time);
+    if (durationMode === "preset") {
+      const now = new Date(`${startDate}T${time}`);
+      const endTime = new Date(now.getTime() + selectedDuration * 60000);
+      setEndDate(endTime.toISOString().split('T')[0]);
+      setEndTime(endTime.toTimeString().slice(0, 5));
+    }
+  };
 
   const handleSubmit = async () => {
     if (!selectedBatch) {
@@ -116,7 +150,7 @@ export default function AssignTestPage({
               />
               <input
                 value={startTime}
-                onChange={(e) => setStartTime(e.target.value)}
+                onChange={(e) => handleStartTimeChange(e.target.value)}
                 type="time"
                 className="rounded-xl border border-[#2b3052] bg-[#0a0c14] px-3 py-2.5 text-sm text-white"
               />
@@ -124,22 +158,74 @@ export default function AssignTestPage({
           </div>
 
           <div>
-            <label className="mb-1 block text-xs font-semibold text-zinc-400">End Date & Time</label>
-            <div className="grid grid-cols-2 gap-2">
-              <input
-                value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
-                type="date"
-                className="rounded-xl border border-[#2b3052] bg-[#0a0c14] px-3 py-2.5 text-sm text-white"
-              />
-              <input
-                value={endTime}
-                onChange={(e) => setEndTime(e.target.value)}
-                type="time"
-                className="rounded-xl border border-[#2b3052] bg-[#0a0c14] px-3 py-2.5 text-sm text-white"
-              />
+            <label className="mb-2 block text-xs font-semibold text-zinc-400">Duration</label>
+            <div className="flex gap-2 mb-3">
+              <button
+                type="button"
+                onClick={() => setDurationMode("preset")}
+                className={`flex-1 rounded-lg px-3 py-2 text-xs font-semibold ${
+                  durationMode === "preset"
+                    ? "bg-cyan-500/20 border border-cyan-500/50 text-cyan-400"
+                    : "bg-[#16192b] border border-[#2b3052] text-zinc-400"
+                }`}
+              >
+                Preset
+              </button>
+              <button
+                type="button"
+                onClick={() => setDurationMode("custom")}
+                className={`flex-1 rounded-lg px-3 py-2 text-xs font-semibold ${
+                  durationMode === "custom"
+                    ? "bg-cyan-500/20 border border-cyan-500/50 text-cyan-400"
+                    : "bg-[#16192b] border border-[#2b3052] text-zinc-400"
+                }`}
+              >
+                Custom
+              </button>
             </div>
+
+            {durationMode === "preset" ? (
+              <div className="grid grid-cols-3 gap-2">
+                {[20, 40, 60].map((mins) => (
+                  <button
+                    key={mins}
+                    type="button"
+                    onClick={() => handleDurationChange(mins)}
+                    className={`rounded-lg px-3 py-2 text-xs font-semibold ${
+                      selectedDuration === mins
+                        ? "bg-emerald-500/20 border border-emerald-500/50 text-emerald-400"
+                        : "bg-[#16192b] border border-[#2b3052] text-zinc-400 hover:border-zinc-500"
+                    }`}
+                  >
+                    {mins} min
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 gap-2">
+                <input
+                  value={endDate}
+                  onChange={(e) => setEndDate(e.target.value)}
+                  type="date"
+                  className="rounded-xl border border-[#2b3052] bg-[#0a0c14] px-3 py-2.5 text-sm text-white"
+                />
+                <input
+                  value={endTime}
+                  onChange={(e) => setEndTime(e.target.value)}
+                  type="time"
+                  className="rounded-xl border border-[#2b3052] bg-[#0a0c14] px-3 py-2.5 text-sm text-white"
+                />
+              </div>
+            )}
           </div>
+
+          {durationMode === "preset" && (
+            <div className="rounded-lg border border-[#2b3052] bg-[#16192b]/60 px-3 py-2">
+              <p className="text-xs text-zinc-400">
+                End Time: <span className="text-white font-semibold">{endDate} {endTime}</span>
+              </p>
+            </div>
+          )}
 
           {error && <p className="text-sm text-red-400">{error}</p>}
           <button

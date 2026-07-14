@@ -11,6 +11,7 @@ interface TutorStats {
   test_count: number;
   submission_count: number;
   enrolled_students: number;
+  pending_manual_grading: number;
   recent_submissions: {
     attempt_id: string;
     student_name: string;
@@ -45,6 +46,15 @@ export default function TutorDashboard() {
           <StatPill label="Submissions" value={stats?.submission_count ?? "—"} />
           <StatPill label="Students" value={stats?.enrolled_students ?? "—"} />
         </div>
+
+        {stats && stats.pending_manual_grading > 0 && (
+          <button
+            onClick={() => router.push("/tutor/grading")}
+            className="mb-4 w-full rounded-xl border border-amber-500/50 bg-amber-500/10 py-3 text-sm font-bold text-amber-400 hover:bg-amber-500/20 transition-colors flex items-center justify-center gap-2"
+          >
+            <span>{stats.pending_manual_grading} Pending Manual Grading</span>
+          </button>
+        )}
 
         {error && <p className="mb-3 text-sm text-red-400">{error}</p>}
 

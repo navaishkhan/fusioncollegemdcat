@@ -23,6 +23,7 @@ from app.schemas import (
     AnswerUpdate,
     AttemptResultResponse,
     AttemptStartResponse,
+    ManualGradeUpdate,
     TestAssignmentCreate,
     TestAssignmentResponse,
     TestCreate,
@@ -44,6 +45,8 @@ def tutor_stats(
     db: Session = Depends(get_db),
     user: User = Depends(require_roles(UserRole.ADMIN, UserRole.TUTOR)),
 ):
+    from app.models import MarkingMode
+    
     question_count = db.query(Question).filter(Question.created_by_id == user.id, Question.is_active.is_(True)).count()
     test_count = db.query(Test).filter(Test.created_by_id == user.id).count()
     submission_count = (
@@ -67,12 +70,26 @@ def tutor_stats(
         .all()
     )
     batch_count = db.query(Enrollment).join(Batch).filter(Batch.created_by_id == user.id).count()
+    
+    pending_manual_grading = (
+        db.query(TestAttempt)
+        .join(TestAssignment)
+        .join(Test)
+        .filter(
+            Test.created_by_id == user.id,
+            Test.marking_mode == MarkingMode.MANUAL,
+            TestAttempt.status == AttemptStatus.SUBMITTED,
+            TestAttempt.total_score.is_(None),
+        )
+        .count()
+    )
 
     return {
         "question_count": question_count,
         "test_count": test_count,
         "submission_count": submission_count,
         "enrolled_students": batch_count,
+        "pending_manual_grading": pending_manual_grading,
         "recent_submissions": [
             {
                 "attempt_id": str(s.id),
@@ -127,6 +144,7 @@ def _test_response(test: Test) -> TestResponse:
         negative_marking=test.negative_marking,
         randomize_order=test.randomize_order,
         show_review_after_submit=test.show_review_after_submit,
+        marking_mode=test.marking_mode,
         question_count=len(test.questions),
     )
 
@@ -430,3 +448,119 @@ def attempt_result(
         rank_in_batch=attempt.rank_in_batch,
         review=build_review_payload(db, attempt) if attempt.status == AttemptStatus.SUBMITTED else None,
     )
+
+
+@router.post("/attempts/{attempt_id}/manual-grade")
+def manual_grade_attempt(
+    attempt_id: UUID,
+    updates: list[ManualGradeUpdate],
+    db: Session = Depends(get_db),
+    user: User = Depends(require_roles(UserRole.ADMIN, UserRole.TUTOR)),
+):
+    attempt = (
+        db.query(TestAttempt)
+        .options(joinedload(TestAttempt.assignment).joinedload(TestAssignment.test))
+        .filter(TestAttempt.id == attempt_id)
+        .first()
+    )
+    if not attempt:
+        raise HTTPException(status_code=404, detail="Attempt not found")
+    
+    test = attempt.assignment.test
+    if test.marking_mode.value != "manual":
+        raise HTTPException(status_code=400, detail="This test is not in manual marking mode")
+    
+    if attempt.status != AttemptStatus.SUBMITTED:
+        raise HTTPException(status_code=400, detail="Attempt must be submitted before manual grading")
+
+    # Apply manual grading
+    for update in updates:
+        answer = (
+            db.query(AttemptAnswer)
+            .filter(
+                AttemptAnswer.attempt_id == attempt.id,
+                AttemptAnswer.question_id == update.question_id,
+            )
+            .first()
+        )
+        if answer:
+            answer.is_correct = update.is_correct
+
+    # Calculate score based on manual grading
+    answers = db.query(AttemptAnswer).filter(AttemptAnswer.attempt_id == attempt.id).all()
+    question_map = {tq.question_id: tq.question for tq in test.questions}
+
+    total = 0.0
+    breakdown: dict[str, dict] = {}
+
+    for answer in answers:
+        question = question_map.get(answer.question_id)
+        if not question:
+            continue
+
+        subject = question.subject.value
+        if subject not in breakdown:
+            breakdown[subject] = {"correct": 0, "wrong": 0, "skipped": 0, "score": 0.0}
+
+        if answer.is_correct is None:
+            breakdown[subject]["skipped"] += 1
+        elif answer.is_correct:
+            breakdown[subject]["correct"] += 1
+            breakdown[subject]["score"] += test.marks_per_question
+            total += test.marks_per_question
+        else:
+            breakdown[subject]["wrong"] += 1
+            breakdown[subject]["score"] += test.negative_marking
+            total += test.negative_marking
+
+    attempt.total_score = max(0.0, total)
+    attempt.subject_breakdown = breakdown
+
+    _update_batch_ranks(db, attempt.assignment_id)
+    db.commit()
+    db.refresh(attempt)
+    
+    return AttemptResultResponse(
+        attempt_id=attempt.id,
+        status=attempt.status,
+        total_score=attempt.total_score,
+        subject_breakdown=attempt.subject_breakdown,
+        rank_in_batch=attempt.rank_in_batch,
+        review=build_review_payload(db, attempt),
+    )
+
+
+@router.get("/pending-manual-grading")
+def pending_manual_grading(
+    db: Session = Depends(get_db),
+    user: User = Depends(require_roles(UserRole.ADMIN, UserRole.TUTOR)),
+):
+    """List attempts that are submitted but not yet manually graded (for manual marking mode tests)"""
+    from app.models import MarkingMode
+    
+    attempts = (
+        db.query(TestAttempt)
+        .join(TestAssignment)
+        .join(Test)
+        .filter(
+            Test.marking_mode == MarkingMode.MANUAL,
+            TestAttempt.status == AttemptStatus.SUBMITTED,
+            TestAttempt.total_score.is_(None),
+        )
+        .options(
+            joinedload(TestAttempt.student),
+            joinedload(TestAttempt.assignment).joinedload(TestAssignment.test),
+        )
+        .order_by(TestAttempt.submitted_at.desc())
+        .all()
+    )
+    
+    return [
+        {
+            "attempt_id": str(a.id),
+            "student_name": a.student.full_name,
+            "test_title": a.assignment.test.title,
+            "submitted_at": a.submitted_at.isoformat() if a.submitted_at else None,
+        }
+        for a in attempts
+    ]
