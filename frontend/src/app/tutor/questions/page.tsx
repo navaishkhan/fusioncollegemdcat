@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import MobileNav, { AuthGuard } from "@/components/MobileNav";
 import { Card, PageShell } from "@/components/Brand";
-import { apiFetch } from "@/lib/api";
+import { apiFetch, formatSubjectName } from "@/lib/api";
 import { motion, AnimatePresence } from "framer-motion";
 import { Trash2, CheckSquare, Square, X, Loader2 } from "lucide-react";
 
@@ -176,7 +176,7 @@ export default function QuestionsPage() {
         <div className="mb-4 flex gap-2 overflow-x-auto pb-1 scrollbar-none">
           <button onClick={() => setSubject("")} className={`shrink-0 rounded-full px-3 py-1.5 text-xs font-semibold ${!subject ? "bg-cyan-500/20 text-cyan-400" : "bg-[#16192b] text-zinc-400"}`}>All Subjects</button>
           {SUBJECTS.map((s) => (
-            <button key={s} onClick={() => setSubject(s)} className={`shrink-0 rounded-full px-3 py-1.5 text-xs font-semibold capitalize ${subject === s ? "bg-cyan-500/20 text-cyan-400" : "bg-[#16192b] text-zinc-400"}`}>{s.replace("_", " ")}</button>
+            <button key={s} onClick={() => setSubject(s)} className={`shrink-0 rounded-full px-3 py-1.5 text-xs font-semibold ${subject === s ? "bg-cyan-500/20 text-cyan-400" : "bg-[#16192b] text-zinc-400"}`}>{formatSubjectName(s)}</button>
           ))}
         </div>
 

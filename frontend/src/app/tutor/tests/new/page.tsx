@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import MobileNav, { AuthGuard } from "@/components/MobileNav";
 import { Card, PageShell, NumberInput } from "@/components/Brand";
-import { apiFetch } from "@/lib/api";
+import { apiFetch, formatSubjectName } from "@/lib/api";
 
 interface Question {
   id: string;
@@ -236,13 +236,13 @@ export default function CreateTestPage() {
                   <button
                     key={s}
                     onClick={() => setFilterSubject(s)}
-                    className={`shrink-0 rounded-full px-3 py-1.5 text-xs font-semibold capitalize ${
+                    className={`shrink-0 rounded-full px-3 py-1.5 text-xs font-semibold ${
                       filterSubject === s
                         ? "bg-cyan-500/20 text-cyan-400"
                         : "bg-[#16192b] text-zinc-400"
                     }`}
                   >
-                    {s.replace("_", " ")}
+                    {formatSubjectName(s)}
                   </button>
                 ))}
               </div>
@@ -299,8 +299,8 @@ export default function CreateTestPage() {
               {autoRules.map((rule, i) => (
                 <Card key={rule.subject}>
                   <div className="flex items-center gap-3">
-                    <span className="w-24 shrink-0 text-sm font-semibold capitalize text-white">
-                      {rule.subject.replace("_", " ")}
+                    <span className="w-24 shrink-0 text-xs font-bold text-white">
+                      {formatSubjectName(rule.subject)}
                     </span>
                     <NumberInput
                       value={rule.count}

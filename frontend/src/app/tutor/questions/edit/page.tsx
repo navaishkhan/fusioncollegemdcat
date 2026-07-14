@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense } from "react";
 import MobileNav, { AuthGuard } from "@/components/MobileNav";
 import { PageShell, NumberInput } from "@/components/Brand";
-import { apiFetch } from "@/lib/api";
+import { apiFetch, formatSubjectName } from "@/lib/api";
 import MarkdownRenderer from "@/components/MarkdownRenderer";
 
 const SUBJECTS = ["bio", "chem", "physics", "english", "logical_reasoning"] as const;
@@ -124,7 +124,7 @@ function EditForm() {
         <div>
           <label className="mb-1 block text-xs font-semibold text-zinc-400">Subject</label>
           <select value={form.subject} onChange={(e) => update("subject", e.target.value)} className="w-full rounded-xl border border-[#2b3052] bg-[#0a0c14] px-3 py-2.5 text-sm text-white">
-            {SUBJECTS.map((s) => <option key={s} value={s}>{s.replace("_", " ")}</option>)}
+            {SUBJECTS.map((s) => <option key={s} value={s}>{formatSubjectName(s)}</option>)}
           </select>
         </div>
         <div>

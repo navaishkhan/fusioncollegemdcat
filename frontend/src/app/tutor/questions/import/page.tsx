@@ -4,7 +4,7 @@ import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import MobileNav, { AuthGuard } from "@/components/MobileNav";
 import { PageShell } from "@/components/Brand";
-import { apiFetch } from "@/lib/api";
+import { apiFetch, formatSubjectName } from "@/lib/api";
 import { Camera, Loader2, CheckCircle2, XCircle, Trash2, Send, ScanLine, ImagePlus } from "lucide-react";
 
 const SUBJECTS = ["bio", "chem", "physics", "english", "logical_reasoning"] as const;
@@ -222,7 +222,7 @@ export default function ImportQuestionsPage() {
                   disabled={q.status === "saved"}
                   className="rounded-xl border border-[#2b3052] bg-[#0a0c14] px-2 py-2 text-xs text-white disabled:opacity-50"
                 >
-                  {SUBJECTS.map((s) => <option key={s} value={s}>{s.replace("_", " ")}</option>)}
+                  {SUBJECTS.map((s) => <option key={s} value={s}>{formatSubjectName(s)}</option>)}
                 </select>
                 <select
                   value={q.difficulty}

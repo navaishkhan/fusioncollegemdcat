@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import MobileNav, { AuthGuard } from "@/components/MobileNav";
 import { PageShell, NumberInput } from "@/components/Brand";
-import { apiFetch } from "@/lib/api";
+import { apiFetch, formatSubjectName } from "@/lib/api";
 import { Camera, Loader2 } from "lucide-react";
 import MarkdownRenderer from "@/components/MarkdownRenderer";
 
@@ -155,7 +155,7 @@ export default function CreateQuestionPage() {
               >
                 {SUBJECTS.map((s) => (
                   <option key={s} value={s}>
-                    {s.replace("_", " ")}
+                    {formatSubjectName(s)}
                   </option>
                 ))}
               </select>
