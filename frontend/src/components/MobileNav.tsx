@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
+import Image from "next/image";
 import { 
   Home, 
   Users, 
@@ -236,19 +237,22 @@ export default function MobileNav() {
       {/* Desktop Left Sidebar */}
       <aside className="hidden md:flex flex-col fixed left-4 top-4 bottom-4 w-64 rounded-3xl glass-panel glossy-border bg-[rgba(12,14,26,0.6)] backdrop-blur-3xl shadow-2xl py-6 px-4 z-30 justify-between overflow-y-auto scrollbar-none">
         <div className="space-y-6">
-          <div className="px-3 py-2 flex items-center gap-3">
-            <div className="h-10 w-10 shrink-0 rounded-2xl bg-gradient-to-br from-cyan-400 to-purple-600 p-[1px] shadow-lg shadow-cyan-500/20">
-              <div className="flex h-full w-full items-center justify-center rounded-2xl bg-[#0a0c14]">
-                <span className="font-editorial text-lg font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-purple-400">F</span>
-              </div>
-            </div>
+          <Link href="/" className="px-3 py-2 flex items-center gap-3 hover:opacity-85 transition-opacity group">
+            <Image
+              src="/logo.png"
+              alt="Fusion College Logo"
+              width={40}
+              height={40}
+              className="rounded-full border border-[#1e223c] bg-white object-contain shadow-md transition-transform duration-300 group-hover:rotate-12"
+              priority
+            />
             <div>
               <h2 className="text-sm font-black tracking-widest text-white uppercase">FUSION MDCAT</h2>
               <div className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">
                 {user.role} Portal
               </div>
             </div>
-          </div>
+          </Link>
           
           <div className="space-y-1.5">
             {allItems.map((item) => {
