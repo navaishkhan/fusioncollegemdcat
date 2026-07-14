@@ -49,9 +49,9 @@ export default function BatchesPage() {
   };
 
   const fetchStudents = () => {
-    apiFetch<Student[]>("/api/admin/students")
+    apiFetch<Student[]>("/api/admin/users?role=student")
       .then(setAllStudents)
-      .catch((e) => console.error("Failed to fetch students:", e));
+      .catch((e) => setError(e instanceof Error ? e.message : "Failed to fetch students"));
   };
 
   const createBatch = async () => {

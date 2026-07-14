@@ -61,6 +61,8 @@ type AddModalType = "student" | "tutor" | "admin" | null;
 
 export default function AdminUsersPage() {
   const [users, setUsers] = useState<UserItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [parentSelections, setParentSelections] = useState<Record<string, string>>({});
   const [filterRole, setFilterRole] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
@@ -92,10 +94,12 @@ export default function AdminUsersPage() {
   const [deletingUser, setDeletingUser] = useState(false);
 
   const fetchUsers = () => {
+    setLoading(true);
     const params = filterRole ? `?role=${filterRole}` : "";
     apiFetch<UserItem[]>(`/api/admin/users${params}`)
       .then(setUsers)
-      .catch((e) => setError(e.message));
+      .catch((e) => setError(e.message))
+      .finally(() => setLoading(false));
   };
 
   useEffect(() => {
@@ -227,6 +231,14 @@ export default function AdminUsersPage() {
       setAddError("Full name, email, and password are required");
       return;
     }
+    if (!addForm.email.includes("@")) {
+      setAddError("Please enter a valid email address");
+      return;
+    }
+    if (addForm.password.length < 8) {
+      setAddError("Password must be at least 8 characters long");
+      return;
+    }
     setAddingUser(true);
     setAddError(null);
     try {
@@ -241,7 +253,7 @@ export default function AdminUsersPage() {
       }
 
       const role = addModalType === "student" ? "student" : addModalType === "tutor" ? "tutor" : "admin";
-      await apiFetch("/api/auth/register", {
+      await apiFetch("/api/admin/users", {
         method: "POST",
         body: JSON.stringify({
           email: addForm.email,
@@ -377,17 +389,22 @@ export default function AdminUsersPage() {
           </div>
         </div>
 
-        <motion.div 
-          className="space-y-2"
-          initial="hidden"
-          animate="show"
-          variants={{
-            hidden: { opacity: 0 },
-            show: { opacity: 1, transition: { staggerChildren: 0.05 } }
-          }}
-        >
-          <AnimatePresence>
-          {displayed.map((u) => (
+        {loading ? (
+          <div className="flex justify-center p-8">
+            <Loader2 className="h-6 w-6 animate-spin text-cyan-400" />
+          </div>
+        ) : (
+          <motion.div 
+            className="space-y-2"
+            initial="hidden"
+            animate="show"
+            variants={{
+              hidden: { opacity: 0 },
+              show: { opacity: 1, transition: { staggerChildren: 0.05 } }
+            }}
+          >
+            <AnimatePresence>
+            {displayed.map((u) => (
             <motion.div
               key={u.id}
               layout
@@ -415,8 +432,8 @@ export default function AdminUsersPage() {
                         <span className="rounded-full bg-purple-500/20 px-1.5 py-0.5 text-[9px] font-bold uppercase text-purple-300">
                           {u.role}
                         </span>
-                        <span className={`rounded-full px-1.5 py-0.5 text-[9px] font-bold ${u.is_active ? "bg-emerald-500/20 text-emerald-400" : "bg-red-500/20 text-red-400"}`}>
-                          {u.is_active ? "Active" : "Inactive"}
+                        <span className={`rounded-full px-1.5 py-0.5 text-[9px] font-bold ${u.is_active ? "bg-emerald-500/20 text-emerald-400" : "bg-amber-500/20 text-amber-400"}`}>
+                          {u.is_active ? "Active" : "Pending Verification / Inactive"}
                         </span>
                         {resetRequests.some((r) => r.user_id === u.id) && (
                           <span className="rounded-full bg-amber-500/20 px-1.5 py-0.5 text-[9px] font-bold text-amber-400 flex items-center gap-0.5">
@@ -431,7 +448,7 @@ export default function AdminUsersPage() {
                       onClick={() => toggleActive(u.id, u.is_active)}
                       className={`rounded-lg px-3 py-1 text-xs font-semibold ${u.is_active ? "bg-red-600/30 text-red-300" : "bg-emerald-600/30 text-emerald-300"}`}
                     >
-                      {u.is_active ? "Deactivate" : "Activate"}
+                      {u.is_active ? "Deactivate" : "Approve / Activate"}
                     </button>
                     <div className="flex gap-1.5">
                       <button
@@ -453,8 +470,8 @@ export default function AdminUsersPage() {
                 {u.role === "student" && (
                   <div className="mt-2 flex items-center gap-2 border-t border-[#1e233d] pt-2">
                     <select
-                      id={`parent-${u.id}`}
-                      defaultValue={u.parent_id || ""}
+                      value={parentSelections[u.id] ?? u.parent_id ?? ""}
+                      onChange={(e) => setParentSelections({ ...parentSelections, [u.id]: e.target.value })}
                       className="flex-1 rounded-lg border border-[#2b3052] bg-[#0a0c14] px-2 py-1.5 text-xs text-white"
                     >
                       <option value="">No Parent Linked</option>
@@ -466,8 +483,7 @@ export default function AdminUsersPage() {
                     </select>
                     <button
                       onClick={() => {
-                        const select = document.getElementById(`parent-${u.id}`) as HTMLSelectElement;
-                        setParent(u.id, select.value);
+                        setParent(u.id, parentSelections[u.id] ?? u.parent_id ?? "");
                       }}
                       className="rounded-lg bg-cyan-600/20 text-cyan-300 hover:bg-cyan-600/40 px-3 py-1.5 text-xs font-bold transition-colors"
                     >
@@ -477,12 +493,13 @@ export default function AdminUsersPage() {
                 )}
               </Card>
             </motion.div>
-          ))}
-          </AnimatePresence>
-          {!error && displayed.length === 0 && (
-            <p className="text-center text-sm text-zinc-500">No users found.</p>
-          )}
-        </motion.div>
+            ))}
+            </AnimatePresence>
+            {!error && displayed.length === 0 && (
+              <p className="text-center text-sm text-zinc-500">No users found.</p>
+            )}
+          </motion.div>
+        )}
       </PageShell>
 
       {/* Reset Password Modal */}

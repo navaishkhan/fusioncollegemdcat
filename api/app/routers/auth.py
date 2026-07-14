@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta, timezone
 from uuid import uuid4
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Body, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.core.deps import get_current_user, require_roles
@@ -44,10 +44,11 @@ def register(payload: UserCreate, db: Session = Depends(get_db)):
         full_name=payload.full_name,
         phone=payload.phone,
         hashed_password=hash_password(payload.password),
-        role=payload.role,
+        role=UserRole.STUDENT,
         parent_id=payload.parent_id,
         profile_picture_url=payload.profile_picture_url,
         specialization=payload.specialization,
+        is_active=False,
     )
     db.add(user)
     db.commit()
@@ -70,7 +71,7 @@ def login(payload: LoginRequest, db: Session = Depends(get_db)):
 
 
 @router.post("/refresh", response_model=TokenResponse)
-def refresh(token: str, db: Session = Depends(get_db)):
+def refresh(token: str = Body(..., embed=True), db: Session = Depends(get_db)):
     payload = safe_decode_token(token)
     if not payload or payload.get("type") != "refresh":
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid refresh token")
@@ -128,45 +129,18 @@ def forgot_password(
     if not user:
         return {"ok": True, "message": "If the email exists, a reset link has been sent."}
 
-    # Invalidate old tokens
-    db.query(PasswordResetToken).filter(
-        PasswordResetToken.user_id == user.id,
-        PasswordResetToken.used.is_(False),
-    ).update({"used": True})
-    db.flush()
-
-    token = uuid4().hex + uuid4().hex
-    expires = datetime.now(timezone.utc) + timedelta(hours=1)
-    # Create admin notification row
-    db.add(PasswordResetRequest(user_id=user.id, status="pending"))
-    db.commit()
+    # Only create a request if one isn't already pending
+    existing = db.query(PasswordResetRequest).filter(
+        PasswordResetRequest.user_id == user.id,
+        PasswordResetRequest.status == "pending"
+    ).first()
+    
+    if not existing:
+        db.add(PasswordResetRequest(user_id=user.id, status="pending"))
+        db.commit()
 
     return {"ok": True, "message": "Your request has been sent to the admin. You will be contacted shortly."}
 
 
 
-@router.post("/reset-password")
-def reset_password(
-    payload: ResetPasswordRequest,
-    db: Session = Depends(get_db),
-):
-    reset = (
-        db.query(PasswordResetToken)
-        .filter(
-            PasswordResetToken.token == payload.token,
-            PasswordResetToken.used.is_(False),
-            PasswordResetToken.expires_at > datetime.now(timezone.utc),
-        )
-        .first()
-    )
-    if not reset:
-        raise HTTPException(status_code=400, detail="Invalid or expired reset token")
 
-    user = db.get(User, reset.user_id)
-    if not user:
-        raise HTTPException(status_code=400, detail="User not found")
-
-    user.hashed_password = hash_password(payload.new_password)
-    reset.used = True
-    db.commit()
-    return {"ok": True, "message": "Password reset successfully."}

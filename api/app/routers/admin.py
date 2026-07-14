@@ -7,8 +7,8 @@ from sqlalchemy.orm import Session
 from app.core.deps import require_roles
 from app.core.security import hash_password
 from app.database import get_db
-from app.models import AttemptAnswer, AttemptStatus, Batch, PasswordResetRequest, Question, Test, TestAttempt, User, UserRole
-from app.schemas import AdminResetPasswordRequest, AdminUserUpdate, PasswordResetRequestResponse, UserResponse, WeakTopic
+from app.models import AttemptAnswer, AttemptStatus, Batch, Enrollment, PasswordResetRequest, Question, Test, TestAssignment, TestAttempt, User, UserRole
+from app.schemas import AdminResetPasswordRequest, AdminUserUpdate, PasswordResetRequestResponse, UserCreate, UserResponse, WeakTopic
 
 router = APIRouter(prefix="/admin", tags=["admin"])
 
@@ -54,12 +54,14 @@ def update_user(
     user_id: UUID,
     payload: AdminUserUpdate,
     db: Session = Depends(get_db),
-    _: User = Depends(require_roles(UserRole.ADMIN)),
+    current_admin: User = Depends(require_roles(UserRole.ADMIN)),
 ):
     user = db.get(User, user_id)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     if payload.role is not None:
+        if user.id == current_admin.id and payload.role != UserRole.ADMIN:
+            raise HTTPException(status_code=400, detail="Cannot demote yourself")
         user.role = payload.role
     if payload.is_active is not None:
         user.is_active = payload.is_active
@@ -68,6 +70,37 @@ def update_user(
         if not parent or parent.role != UserRole.PARENT:
             raise HTTPException(status_code=400, detail="Invalid parent")
         user.parent_id = payload.parent_id
+    db.commit()
+    db.refresh(user)
+    return user
+
+
+@router.post("/users", response_model=UserResponse)
+def create_user(
+    payload: UserCreate,
+    db: Session = Depends(get_db),
+    _: User = Depends(require_roles(UserRole.ADMIN)),
+):
+    if db.query(User).filter(User.email == payload.email).first():
+        raise HTTPException(status_code=400, detail="Email already registered")
+
+    if payload.parent_id:
+        parent = db.get(User, payload.parent_id)
+        if not parent or parent.role != UserRole.PARENT:
+            raise HTTPException(status_code=400, detail="Invalid parent reference")
+
+    user = User(
+        email=payload.email,
+        full_name=payload.full_name,
+        phone=payload.phone,
+        hashed_password=hash_password(payload.password),
+        role=payload.role,
+        parent_id=payload.parent_id,
+        profile_picture_url=payload.profile_picture_url,
+        specialization=payload.specialization,
+        is_active=True,  # Admin-created users are active by default
+    )
+    db.add(user)
     db.commit()
     db.refresh(user)
     return user

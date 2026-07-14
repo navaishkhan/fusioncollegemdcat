@@ -51,8 +51,12 @@ async function attemptRefresh(): Promise<AuthTokens> {
   const tokens = getTokens();
   if (!tokens?.refresh_token) throw new Error("No refresh token");
 
-  const res = await fetch("/api/auth/refresh?token=" + encodeURIComponent(tokens.refresh_token), {
+  const res = await fetch("/api/auth/refresh", {
     method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ token: tokens.refresh_token }),
   });
   if (!res.ok) {
     clearAuth();

@@ -90,6 +90,9 @@ export default function ExamPage({
     }
   }, [attemptId]);
 
+  // Use a ref so the timer can always call the latest handleSubmit without ordering issues
+  const handleSubmitRef = useRef<() => void>(() => {});
+
   // Timer tick
   useEffect(() => {
     if (deadline === null) return;
@@ -97,14 +100,13 @@ export default function ExamPage({
       const now = Date.now();
       const remaining = Math.max(0, Math.floor((deadline - now) / 1000));
       setTimeLeft(remaining);
-      if (remaining <= 0) {
-        handleSubmit();
+    if (remaining <= 0) {
+        handleSubmitRef.current();
       }
     };
     tick();
     const id = setInterval(tick, 1000);
     return () => clearInterval(id);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [deadline]);
 
   // Auto-save every 30s
@@ -139,10 +141,16 @@ export default function ExamPage({
           marked_for_review: v.marked_for_review,
         }));
       if (updates.length > 0) {
-        navigator.sendBeacon(
-          `/api/tests/attempts/${attemptId}/answers`,
-          JSON.stringify(updates),
-        );
+        const tokenData = JSON.parse(localStorage.getItem("fusion_mdcat_tokens") || "{}");
+        fetch(`/api/tests/attempts/${attemptId}/answers`, {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${tokenData.access_token || ""}`,
+          },
+          body: JSON.stringify(updates),
+          keepalive: true,
+        });
       }
     };
     window.addEventListener("beforeunload", handler);
@@ -173,7 +181,7 @@ export default function ExamPage({
     }
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = useCallback(async () => {
     if (!attemptId || pageState === "submitting" || pageState === "done") return;
     setPageState("submitting");
     await saveAnswers();
@@ -188,7 +196,12 @@ export default function ExamPage({
       setError(e instanceof Error ? e.message : "Submit failed");
       setPageState("exam");
     }
-  };
+  }, [attemptId, pageState, saveAnswers]);
+
+  // Keep the ref up to date so the timer always uses the latest handleSubmit
+  useEffect(() => {
+    handleSubmitRef.current = handleSubmit;
+  }, [handleSubmit]);
 
   const selectOption = (qid: string, option: string) => {
     setAnswers((prev) => ({

@@ -105,7 +105,7 @@ def my_history(
         {
             "attempt_id": str(a.id),
             "test_title": a.assignment.test.title,
-            "batch_name": a.assignment.batch.name,
+            "batch_name": a.assignment.batch.name if a.assignment.batch else "Deleted Batch",
             "status": a.status.value,
             "total_score": a.total_score,
             "subject_breakdown": a.subject_breakdown,
@@ -163,6 +163,8 @@ def update_test(
     test = db.get(Test, test_id)
     if not test:
         raise HTTPException(status_code=404, detail="Test not found")
+    if user.role == UserRole.TUTOR and test.created_by_id != user.id:
+        raise HTTPException(status_code=403, detail="You can only edit your own tests")
 
     test.title = payload.title
     test.description = payload.description
@@ -388,6 +390,9 @@ def submit_attempt(
             rank_in_batch=attempt.rank_in_batch,
             review=build_review_payload(db, attempt),
         )
+
+    if datetime.now(timezone.utc) > attempt.server_deadline_at and attempt.status == AttemptStatus.IN_PROGRESS:
+        attempt.status = AttemptStatus.TIMED_OUT
 
     graded = grade_attempt(db, attempt)
     return AttemptResultResponse(

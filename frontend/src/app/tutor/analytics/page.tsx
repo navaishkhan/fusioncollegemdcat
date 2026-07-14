@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import MobileNav, { AuthGuard } from "@/components/MobileNav";
 import { Card, PageShell } from "@/components/Brand";
 import { apiFetch, formatSubjectName } from "@/lib/api";
+import { Loader2 } from "lucide-react";
 
 interface WeakTopic {
   topic: string;
@@ -26,17 +27,20 @@ export default function AnalyticsPage() {
   const [weakTopics, setWeakTopics] = useState<WeakTopic[]>([]);
   const [trends, setTrends] = useState<TrendPoint[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    setLoading(true);
     Promise.all([
-      apiFetch<WeakTopic[]>("/api/admin/analytics/weak-topics").catch(() => [] as WeakTopic[]),
-      apiFetch<TrendPoint[]>("/api/admin/analytics/trends").catch(() => [] as TrendPoint[]),
+      apiFetch<WeakTopic[]>("/api/admin/analytics/weak-topics"),
+      apiFetch<TrendPoint[]>("/api/admin/analytics/trends"),
     ])
       .then(([topics, trendData]) => {
         setWeakTopics(topics);
         setTrends(trendData);
       })
-      .catch((e) => setError(e.message));
+      .catch((e) => setError(e.message))
+      .finally(() => setLoading(false));
   }, []);
 
   // Simple bar chart as colored bars
@@ -47,7 +51,13 @@ export default function AnalyticsPage() {
       <PageShell title="Analytics">
         {error && <p className="mb-3 text-sm text-red-400">{error}</p>}
 
-        {/* Weak topics */}
+        {loading ? (
+          <div className="flex justify-center p-8">
+            <Loader2 className="h-6 w-6 animate-spin text-cyan-400" />
+          </div>
+        ) : (
+          <>
+            {/* Weak topics */}
         {weakTopics.length > 0 && (
           <div className="mb-6">
             <h2 className="mb-2 text-sm font-bold text-white">Topic Accuracy</h2>
@@ -126,8 +136,10 @@ export default function AnalyticsPage() {
           </div>
         )}
 
-        {weakTopics.length === 0 && trends.length === 0 && !error && (
-          <p className="text-sm text-zinc-500">No analytics data yet. Data appears after students submit tests.</p>
+            {weakTopics.length === 0 && trends.length === 0 && !error && (
+              <p className="text-sm text-zinc-500">No analytics data yet. Data appears after students submit tests.</p>
+            )}
+          </>
         )}
       </PageShell>
       <MobileNav />
