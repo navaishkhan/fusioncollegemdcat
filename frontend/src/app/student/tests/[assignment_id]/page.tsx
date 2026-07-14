@@ -293,7 +293,7 @@ export default function ExamPage({
               whileTap={{ scale: 0.98 }}
               onClick={startTest}
               disabled={starting}
-              className="mt-6 w-full rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 py-3.5 text-sm font-bold text-white shadow-lg cursor-pointer disabled:opacity-50"
+              className="mt-6 w-full rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 py-3 text-sm font-bold text-white shadow-lg cursor-pointer disabled:opacity-50"
             >
               {starting ? "Initializing Attempt..." : "Begin Test"}
             </motion.button>
@@ -332,7 +332,7 @@ export default function ExamPage({
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={() => router.push(resultUrl)}
-                className="mt-6 w-full rounded-xl bg-gradient-to-r from-cyan-500 to-violet-600 py-3.5 text-sm font-bold text-white shadow-lg cursor-pointer"
+                className="mt-6 w-full rounded-xl bg-gradient-to-r from-cyan-500 to-violet-600 py-3 text-sm font-bold text-white shadow-lg cursor-pointer"
               >
                 View Score & Explanations
               </motion.button>
@@ -375,7 +375,7 @@ export default function ExamPage({
             </div>
             
             {/* Countdown timer pill */}
-            <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-xs font-bold tabular-nums transition-all ${
+            <div className={`flex items-center gap-1.5 px-3 py-1 rounded-full border text-xs font-bold tabular-nums transition-all ${
               timeLeft !== null && timeLeft < 120
                 ? "border-red-500/30 bg-red-950/20 text-red-400 animate-pulse"
                 : "border-[#1e223c] bg-[#05060b]/60 text-cyan-400"
@@ -430,14 +430,14 @@ export default function ExamPage({
                   <div>
                     {/* Tags */}
                     <div className="mb-4 flex flex-wrap items-center gap-2">
-                      <span className="rounded-lg bg-violet-500/10 border border-violet-500/20 px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-wider text-violet-300">
+                      <span className="rounded-lg bg-violet-500/10 border border-violet-500/20 px-2 py-1 text-[10px] font-extrabold uppercase tracking-wider text-violet-300">
                         {currentQ.subject}
                       </span>
                       <span className="text-xs font-semibold text-slate-400">
                         {currentQ.topic}
                       </span>
                       {currentA?.marked_for_review && (
-                        <span className="rounded-lg bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 text-[10px] font-bold text-amber-400">
+                        <span className="rounded-lg bg-amber-500/10 border border-amber-500/20 px-2 py-1 text-[10px] font-bold text-amber-400">
                           MARKED FOR REVIEW
                         </span>
                       )}
@@ -516,7 +516,7 @@ export default function ExamPage({
               whileTap={{ scale: 0.97 }}
               onClick={() => navigateTo(Math.max(0, currentIndex - 1))}
               disabled={currentIndex === 0}
-              className="flex items-center gap-1.5 rounded-xl border border-[#1e223c] bg-[#0f1224]/60 px-4.5 py-3 text-xs font-bold uppercase tracking-wider text-slate-300 hover:bg-white/5 transition-all disabled:opacity-30 disabled:pointer-events-none cursor-pointer"
+              className="flex items-center gap-1.5 rounded-xl border border-[#1e223c] bg-[#0f1224]/60 px-4 py-3 text-xs font-bold uppercase tracking-wider text-slate-300 hover:bg-white/5 transition-all disabled:opacity-30 disabled:pointer-events-none cursor-pointer"
             >
               <ChevronLeft className="w-4 h-4" />
               <span>Prev</span>
@@ -525,7 +525,7 @@ export default function ExamPage({
             <motion.button
               whileTap={{ scale: 0.97 }}
               onClick={() => toggleReview(currentQ.id)}
-              className={`flex items-center gap-1.5 rounded-xl border px-4.5 py-3 text-xs font-bold uppercase tracking-wider transition-all cursor-pointer ${
+              className={`flex items-center gap-1.5 rounded-xl border px-4 py-3 text-xs font-bold uppercase tracking-wider transition-all cursor-pointer ${
                 currentA?.marked_for_review
                   ? "bg-amber-500/10 border-amber-500/30 text-amber-400"
                   : "border-[#1e223c] bg-[#0f1224]/60 text-slate-300 hover:bg-white/5"
@@ -549,7 +549,7 @@ export default function ExamPage({
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.97 }}
                 onClick={handleSubmit}
-                className="flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 px-5.5 py-3 text-xs font-bold uppercase tracking-wider text-white shadow-lg cursor-pointer"
+                className="flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 px-5 py-3 text-xs font-bold uppercase tracking-wider text-white shadow-lg cursor-pointer"
               >
                 <span>Submit</span>
                 <Send className="w-4 h-4" />
@@ -558,7 +558,7 @@ export default function ExamPage({
               <motion.button
                 whileTap={{ scale: 0.97 }}
                 onClick={() => navigateTo(Math.min(questions.length - 1, currentIndex + 1))}
-                className="flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-cyan-500 to-violet-600 px-5.5 py-3 text-xs font-bold uppercase tracking-wider text-white shadow-lg cursor-pointer"
+                className="flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-cyan-500 to-violet-600 px-5 py-3 text-xs font-bold uppercase tracking-wider text-white shadow-lg cursor-pointer"
               >
                 <span>Next</span>
                 <ChevronRight className="w-4 h-4" />

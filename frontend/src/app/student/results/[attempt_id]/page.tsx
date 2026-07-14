@@ -19,6 +19,7 @@ import {
 import MobileNav, { AuthGuard } from "@/components/MobileNav";
 import { apiFetch, formatSubjectName } from "@/lib/api";
 import { Card } from "@/components/Brand";
+import MarkdownRenderer from "@/components/MarkdownRenderer";
 
 interface ReviewItem {
   question_id: string;
@@ -58,7 +59,7 @@ export default function ResultPage({
   const [showReview, setShowReview] = useState(false);
   const [reviewIndex, setReviewIndex] = useState(0);
   const [direction, setDirection] = useState(1);
-  const [isScoreFlipped, setIsScoreFlipped] = useState(false); // 1 for next, -1 for prev
+  const [isScoreFlipped, setIsScoreFlipped] = useState(false);
 
   useEffect(() => {
     apiFetch<ResultData>(`/api/tests/attempts/${attempt_id}/result`)
@@ -200,9 +201,9 @@ export default function ResultPage({
                   exit="exit"
                   className="w-full absolute"
                 >
-                  <p className="mb-6 text-base font-medium leading-relaxed text-slate-200">
-                    {item.stem}
-                  </p>
+                  <div className="mb-6 text-base font-medium leading-relaxed text-slate-200">
+                    <MarkdownRenderer content={item.stem} />
+                  </div>
                   
                   <div className="space-y-3">
                     {Object.entries(item.options).map(([key, value]) => {
@@ -233,7 +234,9 @@ export default function ResultPage({
                           <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-black border border-current">
                             {key}
                           </span>
-                          <span className="flex-1 font-medium">{value}</span>
+                          <span className="flex-1 font-medium pointer-events-none">
+                            <MarkdownRenderer content={value} />
+                          </span>
                           {iconEl}
                         </div>
                       );
@@ -265,7 +268,7 @@ export default function ResultPage({
                 whileTap={{ scale: 0.97 }}
                 onClick={() => navigateTo(Math.max(0, reviewIndex - 1))}
                 disabled={reviewIndex === 0}
-                className="flex items-center gap-1.5 rounded-xl border border-[#1e223c] bg-[#0f1224]/60 px-4.5 py-3 text-xs font-bold uppercase tracking-wider text-slate-300 hover:bg-white/5 transition-all disabled:opacity-30 disabled:pointer-events-none cursor-pointer"
+                className="flex items-center gap-1.5 rounded-xl border border-[#1e223c] bg-[#0f1224]/60 px-4 py-3 text-xs font-bold uppercase tracking-wider text-slate-300 hover:bg-white/5 transition-all disabled:opacity-30 disabled:pointer-events-none cursor-pointer"
               >
                 <ChevronLeft className="w-4 h-4" />
                 <span>Prev</span>
@@ -286,7 +289,7 @@ export default function ResultPage({
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.97 }}
                   onClick={() => setShowReview(false)}
-                  className="rounded-xl bg-gradient-to-r from-cyan-500 to-violet-600 px-5.5 py-3 text-xs font-bold uppercase tracking-wider text-white shadow-lg cursor-pointer"
+                  className="rounded-xl bg-gradient-to-r from-cyan-500 to-violet-600 px-5 py-3 text-xs font-bold uppercase tracking-wider text-white shadow-lg cursor-pointer"
                 >
                   Summary
                 </motion.button>
@@ -294,7 +297,7 @@ export default function ResultPage({
                 <motion.button
                   whileTap={{ scale: 0.97 }}
                   onClick={() => navigateTo(reviewIndex + 1)}
-                  className="flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-cyan-500 to-violet-600 px-5.5 py-3 text-xs font-bold uppercase tracking-wider text-white shadow-lg cursor-pointer"
+                  className="flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-cyan-500 to-violet-600 px-5 py-3 text-xs font-bold uppercase tracking-wider text-white shadow-lg cursor-pointer"
                 >
                   <span>Next</span>
                   <ChevronRight className="w-4 h-4" />
@@ -343,7 +346,7 @@ export default function ResultPage({
                       {data.total_score?.toFixed(1) ?? "—"}
                     </p>
                     {data.rank_in_batch != null && (
-                      <div className="mt-4 inline-flex items-center gap-1 rounded-full bg-amber-500/10 border border-amber-500/20 px-3.5 py-1.5 text-xs font-bold text-amber-400">
+                      <div className="mt-4 inline-flex items-center gap-1 rounded-full bg-amber-500/10 border border-amber-500/20 px-3 py-1 text-xs font-bold text-amber-400">
                         <Award className="w-3.5 h-3.5" />
                         <span>Batch Rank: #{data.rank_in_batch}</span>
                       </div>
