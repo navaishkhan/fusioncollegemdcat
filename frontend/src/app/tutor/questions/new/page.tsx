@@ -190,7 +190,7 @@ export default function CreateQuestionPage() {
             </label>
             <NumberInput
               value={form.past_paper_year}
-              onChange={(val) => update("past_paper_year", val)}
+              onChange={(val) => update("past_paper_year", val.toString())}
               min={2000}
               max={2030}
             />

@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense } from "react";
 import MobileNav, { AuthGuard } from "@/components/MobileNav";
-import { Card, PageShell, NumberInput } from "@/components/Brand";
+import { PageShell, NumberInput } from "@/components/Brand";
 import { apiFetch } from "@/lib/api";
 import MarkdownRenderer from "@/components/MarkdownRenderer";
 
@@ -142,7 +142,7 @@ function EditForm() {
         <label className="mb-1 block text-xs font-semibold text-zinc-400">Past Paper Year</label>
         <NumberInput
           value={form.past_paper_year}
-          onChange={(val) => update("past_paper_year", val)}
+          onChange={(val) => update("past_paper_year", val.toString())}
           min={2000}
           max={2030}
         />

@@ -142,9 +142,26 @@ export default function BatchesPage() {
           </div>
         )}
 
-        <div className="space-y-3">
+        <motion.div 
+          className="space-y-3"
+          initial="hidden"
+          animate="show"
+          variants={{
+            hidden: { opacity: 0 },
+            show: { opacity: 1, transition: { staggerChildren: 0.05 } }
+          }}
+        >
+          <AnimatePresence>
           {batches.map((b) => (
-            <Card key={b.id}>
+            <motion.div
+              key={b.id}
+              layout
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              transition={{ duration: 0.2 }}
+            >
+              <Card>
               <div className="flex items-start justify-between gap-2">
                 <div>
                   <h3 className="font-bold text-white">{b.name}</h3>

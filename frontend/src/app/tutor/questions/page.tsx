@@ -13,6 +13,14 @@ interface Question {
   topic: string;
   difficulty: string;
   stem: string;
+  options: {
+    A: string;
+    B: string;
+    C: string;
+    D: string;
+  };
+  correct_option: string;
+  explanation?: string;
 }
 
 const SUBJECTS = ["bio", "chem", "physics", "english", "logical_reasoning"];
