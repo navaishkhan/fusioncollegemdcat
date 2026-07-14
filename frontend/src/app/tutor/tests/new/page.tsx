@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import MobileNav, { AuthGuard } from "@/components/MobileNav";
-import { Card, PageShell } from "@/components/Brand";
+import { Card, PageShell, NumberInput } from "@/components/Brand";
 import { apiFetch } from "@/lib/api";
 
 interface Question {
@@ -25,9 +25,9 @@ export default function CreateTestPage() {
   // Test settings
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [duration, setDuration] = useState(150);
-  const [marksPerQ, setMarksPerQ] = useState(1);
-  const [negativeMarking, setNegativeMarking] = useState(-0.25);
+  const [duration, setDuration] = useState<number | string>(150);
+  const [marksPerQ, setMarksPerQ] = useState<number | string>(1.0);
+  const [negativeMarking, setNegativeMarking] = useState<number | string>(-0.25);
   const [randomize, setRandomize] = useState(true);
   const [showReview, setShowReview] = useState(true);
 
@@ -145,23 +145,20 @@ export default function CreateTestPage() {
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="mb-1 block text-xs font-semibold text-zinc-400">Duration (min)</label>
-              <input
+              <NumberInput
                 value={duration}
-                onChange={(e) => setDuration(Number(e.target.value))}
-                type="number"
+                onChange={(val) => setDuration(val)}
                 min={1}
-                className="w-full rounded-xl border border-[#2b3052] bg-[#0a0c14] px-3 py-2.5 text-sm text-white"
+                step={5}
               />
             </div>
             <div>
               <label className="mb-1 block text-xs font-semibold text-zinc-400">Marks per Q</label>
-              <input
+              <NumberInput
                 value={marksPerQ}
-                onChange={(e) => setMarksPerQ(Number(e.target.value))}
-                type="number"
-                step={0.5}
+                onChange={(val) => setMarksPerQ(val)}
                 min={0.5}
-                className="w-full rounded-xl border border-[#2b3052] bg-[#0a0c14] px-3 py-2.5 text-sm text-white"
+                step={0.5}
               />
             </div>
           </div>
@@ -170,12 +167,10 @@ export default function CreateTestPage() {
               <label className="mb-1 block text-xs font-semibold text-zinc-400">
                 Negative Marking
               </label>
-              <input
+              <NumberInput
                 value={negativeMarking}
-                onChange={(e) => setNegativeMarking(Number(e.target.value))}
-                type="number"
+                onChange={(val) => setNegativeMarking(val)}
                 step={0.25}
-                className="w-full rounded-xl border border-[#2b3052] bg-[#0a0c14] px-3 py-2.5 text-sm text-white"
               />
             </div>
             <div className="flex flex-col justify-end gap-2 pb-1">
@@ -301,22 +296,20 @@ export default function CreateTestPage() {
               <p className="text-xs text-zinc-500">
                 Set how many questions to pick per subject.
               </p>
-              {autoRules.map((rule) => (
+              {autoRules.map((rule, i) => (
                 <Card key={rule.subject}>
                   <div className="flex items-center gap-3">
                     <span className="w-24 shrink-0 text-sm font-semibold capitalize text-white">
                       {rule.subject.replace("_", " ")}
                     </span>
-                    <input
-                      value={rule.count || ""}
-                      onChange={(e) =>
-                        updateRule(rule.subject, "count", parseInt(e.target.value) || 0)
-                      }
-                      type="number"
+                    <NumberInput
+                      value={rule.count}
+                      onChange={(val) => {
+                        const newRules = [...autoRules];
+                        newRules[i].count = Number(val) || 0;
+                        setAutoRules(newRules);
+                      }}
                       min={0}
-                      max={200}
-                      placeholder="Count"
-                      className="w-20 rounded-lg border border-[#2b3052] bg-[#0a0c14] px-2 py-1.5 text-sm text-white text-center"
                     />
                     <select
                       value={rule.difficulty}

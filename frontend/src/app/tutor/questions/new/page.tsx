@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import MobileNav, { AuthGuard } from "@/components/MobileNav";
-import { PageShell } from "@/components/Brand";
+import { PageShell, NumberInput } from "@/components/Brand";
 import { apiFetch } from "@/lib/api";
 import { Camera, Loader2 } from "lucide-react";
 import MarkdownRenderer from "@/components/MarkdownRenderer";
@@ -188,12 +188,11 @@ export default function CreateQuestionPage() {
             <label className="mb-1 block text-xs font-semibold text-zinc-400">
               Past Paper Year <span className="text-zinc-500">(optional)</span>
             </label>
-            <input
+            <NumberInput
               value={form.past_paper_year}
-              onChange={(e) => update("past_paper_year", e.target.value)}
-              placeholder="e.g. 2024"
-              type="number"
-              className="w-full rounded-xl border border-[#2b3052] bg-[#0a0c14] px-3 py-2.5 text-sm text-white placeholder-zinc-600"
+              onChange={(val) => update("past_paper_year", val)}
+              min={2000}
+              max={2030}
             />
           </div>
           <div>

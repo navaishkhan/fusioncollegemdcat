@@ -119,3 +119,73 @@ export function StatPill({
     </motion.div>
   );
 }
+
+export function GlassInput({
+  className = "",
+  ...props
+}: React.InputHTMLAttributes<HTMLInputElement>) {
+  return (
+    <input
+      className={`rounded-xl border border-[rgba(255,255,255,0.08)] bg-[rgba(5,6,11,0.8)] px-4 py-3 text-sm text-white placeholder-zinc-500 shadow-inner backdrop-blur-md transition hover:border-[rgba(255,255,255,0.15)] focus:border-cyan-500/50 focus:bg-[#0a0c14] focus:outline-none focus:ring-1 focus:ring-cyan-500/50 ${className}`}
+      {...props}
+    />
+  );
+}
+
+export function NumberInput({
+  value,
+  onChange,
+  min = 0,
+  max,
+  step = 1,
+  className = "",
+}: {
+  value: number | string;
+  onChange: (val: number | string) => void;
+  min?: number;
+  max?: number;
+  step?: number;
+  className?: string;
+}) {
+  const handleDecrement = () => {
+    const current = Number(value) || 0;
+    const next = current - step;
+    if (min !== undefined && next < min) return;
+    onChange(next);
+  };
+
+  const handleIncrement = () => {
+    const current = Number(value) || 0;
+    const next = current + step;
+    if (max !== undefined && next > max) return;
+    onChange(next);
+  };
+
+  return (
+    <div className={`flex items-stretch rounded-xl border border-[#2b3052] bg-[#0a0c14] overflow-hidden ${className}`}>
+      <button
+        type="button"
+        onClick={handleDecrement}
+        className="flex px-4 items-center justify-center bg-[#16192b] text-zinc-400 hover:text-white hover:bg-[#1e233d] transition-colors font-bold text-lg"
+      >
+        -
+      </button>
+      <input
+        type="number"
+        value={value}
+        onChange={(e) => onChange(e.target.value === "" ? "" : Number(e.target.value))}
+        min={min}
+        max={max}
+        step={step}
+        className="w-full bg-transparent px-2 py-2.5 text-center text-sm font-bold text-white focus:outline-none"
+      />
+      <button
+        type="button"
+        onClick={handleIncrement}
+        className="flex px-4 items-center justify-center bg-[#16192b] text-zinc-400 hover:text-white hover:bg-[#1e233d] transition-colors font-bold text-lg"
+      >
+        +
+      </button>
+    </div>
+  );
+}
