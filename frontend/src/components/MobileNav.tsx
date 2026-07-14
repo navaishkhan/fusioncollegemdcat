@@ -35,7 +35,7 @@ const NAV: Record<string, { href: string; label: string }[]> = {
     { href: "/admin/users", label: "Users" },
     { href: "/tutor/questions", label: "Bank" },
     { href: "/tutor/tests", label: "Tests" },
-    { href: "/tutor/batches", label: "Batches" },
+    { href: "/admin/batches", label: "Batches" },
     { href: "/tutor/analytics", label: "Analytics" },
     { href: "/profile", label: "Profile" },
   ],
