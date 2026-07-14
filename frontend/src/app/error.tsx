@@ -9,7 +9,7 @@ export default function ErrorPage({
 }) {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-[#0d0f1a] p-6 safe-top safe-bottom">
-      <div className="text-6xl">⚠️</div>
+      <div className="text-6xl font-bold text-red-400">!</div>
       <h1 className="mt-4 text-xl font-bold text-white">Something went wrong</h1>
       <p className="mt-2 text-sm text-zinc-400 text-center max-w-md">
         {error.message || "An unexpected error occurred."}

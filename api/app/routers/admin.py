@@ -13,6 +13,15 @@ from app.schemas import AdminResetPasswordRequest, AdminUserUpdate, PasswordRese
 router = APIRouter(prefix="/admin", tags=["admin"])
 
 
+@router.get("/students", response_model=list[UserResponse])
+def list_students(
+    db: Session = Depends(get_db),
+    _: User = Depends(require_roles(UserRole.ADMIN, UserRole.TUTOR)),
+):
+    """List all students — accessible to both admin and tutor."""
+    return db.query(User).filter(User.role == UserRole.STUDENT).order_by(User.full_name).all()
+
+
 @router.get("/users", response_model=list[UserResponse])
 def list_users(
     role: UserRole | None = None,

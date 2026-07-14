@@ -67,7 +67,7 @@ export default function TutorDashboard() {
           onClick={() => router.push("/tutor/analytics")}
           className="mb-6 w-full rounded-full glossy-border bg-[rgba(10,11,16,0.6)] py-3.5 text-sm font-editorial font-bold text-zinc-300 hover:bg-[rgba(255,255,255,0.05)] transition-all cursor-pointer"
         >
-          📊 View Analytics
+          View Analytics
         </button>
 
         {/* Recent submissions */}

@@ -272,11 +272,11 @@ export default function ResultPage({
               
               <div className="text-xs font-black uppercase tracking-widest text-slate-400">
                 {userCorrect ? (
-                  <span className="text-emerald-400 font-bold">Correct ✓</span>
+                  <span className="text-emerald-400 font-bold">Correct</span>
                 ) : item.is_correct === null ? (
                   <span className="text-slate-500 font-bold">Skipped</span>
                 ) : (
-                  <span className="text-red-400 font-bold">Incorrect ✗</span>
+                  <span className="text-red-400 font-bold">Incorrect</span>
                 )}
               </div>
 

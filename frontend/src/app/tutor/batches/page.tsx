@@ -34,14 +34,23 @@ export default function BatchesPage() {
   const [enrolling, setEnrolling] = useState(false);
   const [enrolledStudents, setEnrolledStudents] = useState<Student[]>([]);
 
+  const [allStudents, setAllStudents] = useState<Student[]>([]);
+
   useEffect(() => {
     fetchBatches();
+    fetchStudents();
   }, []);
 
   const fetchBatches = () => {
     apiFetch<Batch[]>("/api/batches")
       .then(setBatches)
       .catch((e) => setError(e.message));
+  };
+
+  const fetchStudents = () => {
+    apiFetch<Student[]>("/api/admin/students")
+      .then(setAllStudents)
+      .catch((e) => console.error("Failed to fetch students:", e));
   };
 
   const createBatch = async () => {
@@ -158,12 +167,20 @@ export default function BatchesPage() {
               {enrollingBatch === b.id && (
                 <div className="mt-3 space-y-2 border-t border-[#1e233d] pt-3">
                   <div className="flex gap-2">
-                    <input
+                    <select
                       value={enrollStudentId}
                       onChange={(e) => setEnrollStudentId(e.target.value)}
-                      placeholder="Student UUID"
-                      className="flex-1 rounded-xl border border-[#2b3052] bg-[#0a0c14] px-3 py-2 text-xs text-white placeholder-zinc-600"
-                    />
+                      className="flex-1 rounded-xl border border-[#2b3052] bg-[#0a0c14] px-3 py-2 text-xs text-white"
+                    >
+                      <option value="">Select a student...</option>
+                      {allStudents
+                        .filter((s) => !enrolledStudents.some((es) => es.id === s.id))
+                        .map((s) => (
+                          <option key={s.id} value={s.id}>
+                            {s.full_name} ({s.email})
+                          </option>
+                        ))}
+                    </select>
                     <button
                       onClick={enrollStudent}
                       disabled={enrolling}

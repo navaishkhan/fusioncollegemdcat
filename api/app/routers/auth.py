@@ -46,6 +46,8 @@ def register(payload: UserCreate, db: Session = Depends(get_db)):
         hashed_password=hash_password(payload.password),
         role=payload.role,
         parent_id=payload.parent_id,
+        profile_picture_url=payload.profile_picture_url,
+        specialization=payload.specialization,
     )
     db.add(user)
     db.commit()

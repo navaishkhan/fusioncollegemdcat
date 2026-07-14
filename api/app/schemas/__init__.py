@@ -22,6 +22,8 @@ class UserCreate(UserBase):
     password: str = Field(min_length=8)
     role: UserRole = UserRole.STUDENT
     parent_id: UUID | None = None
+    profile_picture_url: str | None = None
+    specialization: str | None = None
 
 
 class UserResponse(UserBase):
@@ -29,6 +31,8 @@ class UserResponse(UserBase):
     role: UserRole
     parent_id: UUID | None
     is_active: bool
+    profile_picture_url: str | None = None
+    specialization: str | None = None
 
     model_config = {"from_attributes": True}
 

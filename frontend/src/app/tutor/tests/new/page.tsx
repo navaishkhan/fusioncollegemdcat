@@ -272,7 +272,7 @@ export default function CreateTestPage() {
                             : "border-[#2b3052] text-zinc-500"
                         }`}
                       >
-                        {selected ? "✓" : ""}
+                        {selected ? "+" : ""}
                       </div>
                       <div className="min-w-0 flex-1">
                         <div className="flex flex-wrap gap-1.5">

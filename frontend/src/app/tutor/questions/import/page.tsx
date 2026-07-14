@@ -201,7 +201,7 @@ export default function ImportQuestionsPage() {
                   {q.status === "saving" && <Loader2 className="h-4 w-4 animate-spin text-cyan-400" />}
                   {q.status === "pending" && <ScanLine className="h-4 w-4 text-zinc-400" />}
                   <span className="text-xs font-bold uppercase tracking-widest text-zinc-500">
-                    {q.status === "saved" ? "Saved ✓" : q.status === "error" ? "Failed" : q.status === "saving" ? "Saving..." : "Review"}
+                    {q.status === "saved" ? "Saved" : q.status === "error" ? "Failed" : q.status === "saving" ? "Saving..." : "Review"}
                   </span>
                 </div>
                 <button onClick={() => removeQ(q.id)} className="text-zinc-600 hover:text-red-400">
@@ -319,7 +319,7 @@ export default function ImportQuestionsPage() {
             onClick={() => router.push("/tutor/questions")}
             className="mt-6 w-full rounded-xl bg-[#16192b] py-3 text-sm font-semibold text-zinc-300 hover:bg-[#1e2340]"
           >
-            ✓ Done — View All Questions
+                        Done — View All Questions
           </button>
         )}
       </PageShell>

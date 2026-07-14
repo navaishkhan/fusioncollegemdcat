@@ -140,7 +140,7 @@ export default function QuestionsPage() {
               onClick={() => setSearch("")}
               className="absolute right-3.5 text-zinc-500 hover:text-white transition-colors text-xs"
             >
-              ✕
+              x
             </button>
           )}
         </div>

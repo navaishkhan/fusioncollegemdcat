@@ -83,6 +83,8 @@ class User(Base):
         UUID(as_uuid=True), ForeignKey("users.id"), nullable=True
     )
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    profile_picture_url: Mapped[str | None] = mapped_column(String(1024), nullable=True)
+    specialization: Mapped[str | None] = mapped_column(String(255), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     parent: Mapped["User | None"] = relationship("User", remote_side=[id], back_populates="children")
