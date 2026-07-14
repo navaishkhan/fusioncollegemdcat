@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import MobileNav, { AuthGuard } from "@/components/MobileNav";
 import { Card, PageShell } from "@/components/Brand";
 import { apiFetch } from "@/lib/api";
-import { Bell, KeyRound, X, CheckCircle2, Loader2, ShieldAlert } from "lucide-react";
+import { Bell, KeyRound, X, CheckCircle2, Loader2, ShieldAlert, Plus } from "lucide-react";
 
 interface UserItem {
   id: string;
@@ -51,17 +51,60 @@ export default function AdminUsersPage() {
   const [resetting, setResetting] = useState(false);
   const [resetError, setResetError] = useState<string | null>(null);
 
-  useEffect(() => {
+  // Add User modal
+  const [showAddUserModal, setShowAddUserModal] = useState(false);
+  const [addName, setAddName] = useState("");
+  const [addEmail, setAddEmail] = useState("");
+  const [addRole, setAddRole] = useState("student");
+  const [addPassword, setAddPassword] = useState("");
+  const [addingUser, setAddingUser] = useState(false);
+  const [addError, setAddError] = useState<string | null>(null);
+
+  const fetchUsers = () => {
     const params = filterRole ? `?role=${filterRole}` : "";
     apiFetch<UserItem[]>(`/api/admin/users${params}`)
       .then(setUsers)
       .catch((e) => setError(e.message));
+  };
+
+  useEffect(() => {
+    fetchUsers();
 
     // Load pending reset requests
     apiFetch<ResetRequest[]>("/api/admin/password-reset-requests")
       .then(setResetRequests)
       .catch(() => {}); // silent fail if table doesn't exist yet
   }, [filterRole]);
+
+  const submitAddUser = async () => {
+    if (!addName || !addEmail || !addPassword) {
+      setAddError("Please fill all fields");
+      return;
+    }
+    setAddingUser(true);
+    setAddError(null);
+    try {
+      await apiFetch("/api/auth/register", {
+        method: "POST",
+        body: JSON.stringify({
+          email: addEmail,
+          full_name: addName,
+          password: addPassword,
+          role: addRole,
+        }),
+      });
+      setUpdateMsg(`User ${addName} added`);
+      setShowAddUserModal(false);
+      setAddName("");
+      setAddEmail("");
+      setAddPassword("");
+      fetchUsers();
+    } catch (e) {
+      setAddError(e instanceof Error ? e.message : "Failed to add user");
+    } finally {
+      setAddingUser(false);
+    }
+  };
 
   const doSearch = async () => {
     if (!search.trim()) return;
@@ -229,16 +272,21 @@ export default function AdminUsersPage() {
           </button>
         </div>
 
-        {/* Role filter */}
-        <div className="mb-4 flex gap-2 overflow-x-auto pb-1">
-          <button onClick={() => setFilterRole("")} className={`shrink-0 rounded-full px-3 py-1.5 text-xs font-semibold ${!filterRole ? "bg-cyan-500/20 text-cyan-400" : "bg-[#16192b] text-zinc-400"}`}>
-            All
-          </button>
-          {ROLES.map((r) => (
-            <button key={r} onClick={() => setFilterRole(r)} className={`shrink-0 rounded-full px-3 py-1.5 text-xs font-semibold capitalize ${filterRole === r ? "bg-cyan-500/20 text-cyan-400" : "bg-[#16192b] text-zinc-400"}`}>
-              {r}
+        {/* Role filter & Add User */}
+        <div className="mb-4 flex items-center justify-between gap-4">
+          <div className="flex gap-2 overflow-x-auto pb-1 flex-1">
+            <button onClick={() => setFilterRole("")} className={`shrink-0 rounded-full px-3 py-1.5 text-xs font-semibold ${!filterRole ? "bg-cyan-500/20 text-cyan-400" : "bg-[#16192b] text-zinc-400"}`}>
+              All
             </button>
-          ))}
+            {ROLES.map((r) => (
+              <button key={r} onClick={() => setFilterRole(r)} className={`shrink-0 rounded-full px-3 py-1.5 text-xs font-semibold capitalize ${filterRole === r ? "bg-cyan-500/20 text-cyan-400" : "bg-[#16192b] text-zinc-400"}`}>
+                {r}
+              </button>
+            ))}
+          </div>
+          <button onClick={() => setShowAddUserModal(true)} className="flex shrink-0 items-center gap-1.5 rounded-xl bg-[#3d4193] px-4 py-2 text-sm font-semibold text-white hover:bg-[#252a4a] transition-colors">
+            <Plus className="h-4 w-4" /> <span className="hidden sm:inline">Add User</span>
+          </button>
         </div>
 
         <div className="space-y-2">
@@ -349,6 +397,76 @@ export default function AdminUsersPage() {
                 className="w-full rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 py-3 text-sm font-bold text-white disabled:opacity-50 flex items-center justify-center gap-2"
               >
                 {resetting ? <><Loader2 className="h-4 w-4 animate-spin" /> Saving...</> : "Set New Password"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Add User Modal */}
+      {showAddUserModal && (
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/70 backdrop-blur-sm p-4">
+          <div className="w-full max-w-md rounded-3xl border border-[#1e2340] bg-[#0d0f1e] p-6 shadow-2xl">
+            <div className="mb-4 flex items-center justify-between">
+              <div>
+                <h2 className="text-sm font-bold text-white flex items-center gap-2">
+                  <Plus className="h-4 w-4 text-cyan-400" /> Add New User
+                </h2>
+              </div>
+              <button onClick={() => setShowAddUserModal(false)} className="text-zinc-500 hover:text-white">
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            <div className="space-y-3">
+              <div>
+                <label className="mb-1 block text-xs font-semibold text-zinc-400">Full Name</label>
+                <input
+                  value={addName}
+                  onChange={(e) => setAddName(e.target.value)}
+                  placeholder="e.g. Ali Khan"
+                  className="w-full rounded-xl border border-[#2b3052] bg-[#0a0c14] px-3 py-2.5 text-sm text-white placeholder-zinc-600"
+                />
+              </div>
+              <div>
+                <label className="mb-1 block text-xs font-semibold text-zinc-400">Email Address</label>
+                <input
+                  type="email"
+                  value={addEmail}
+                  onChange={(e) => setAddEmail(e.target.value)}
+                  placeholder="ali@example.com"
+                  className="w-full rounded-xl border border-[#2b3052] bg-[#0a0c14] px-3 py-2.5 text-sm text-white placeholder-zinc-600"
+                />
+              </div>
+              <div>
+                <label className="mb-1 block text-xs font-semibold text-zinc-400">Role</label>
+                <select
+                  value={addRole}
+                  onChange={(e) => setAddRole(e.target.value)}
+                  className="w-full rounded-xl border border-[#2b3052] bg-[#0a0c14] px-3 py-2.5 text-sm text-white capitalize"
+                >
+                  {ROLES.map((r) => (
+                    <option key={r} value={r}>{r}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="mb-1 block text-xs font-semibold text-zinc-400">Password</label>
+                <input
+                  type="password"
+                  value={addPassword}
+                  onChange={(e) => setAddPassword(e.target.value)}
+                  placeholder="Min 8 characters"
+                  className="w-full rounded-xl border border-[#2b3052] bg-[#0a0c14] px-3 py-2.5 text-sm text-white placeholder-zinc-600"
+                />
+              </div>
+              {addError && <p className="text-xs text-red-400">{addError}</p>}
+              <button
+                onClick={submitAddUser}
+                disabled={addingUser || !addName || !addEmail || !addPassword}
+                className="w-full rounded-xl bg-gradient-to-r from-[#3d4193] to-cyan-700 py-3 mt-2 text-sm font-bold text-white disabled:opacity-50 flex items-center justify-center gap-2"
+              >
+                {addingUser ? <><Loader2 className="h-4 w-4 animate-spin" /> Adding...</> : "Create User"}
               </button>
             </div>
           </div>
