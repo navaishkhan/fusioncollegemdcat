@@ -57,7 +57,8 @@ export default function ResultPage({
   const [error, setError] = useState<string | null>(null);
   const [showReview, setShowReview] = useState(false);
   const [reviewIndex, setReviewIndex] = useState(0);
-  const [direction, setDirection] = useState(1); // 1 for next, -1 for prev
+  const [direction, setDirection] = useState(1);
+  const [isScoreFlipped, setIsScoreFlipped] = useState(false); // 1 for next, -1 for prev
 
   useEffect(() => {
     apiFetch<ResultData>(`/api/tests/attempts/${attempt_id}/result`)
@@ -325,20 +326,58 @@ export default function ResultPage({
 
         <main className="mx-auto max-w-2xl px-4 py-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-            {/* Score card */}
-            <Card className="text-center md:col-span-2 relative overflow-hidden group">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-cyan-500/5 to-violet-500/5 rounded-full blur-2xl pointer-events-none" />
-              <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Total Score</p>
-              <p className="text-5xl font-black text-gradient tracking-tight">
-                {data.total_score?.toFixed(1) ?? "—"}
-              </p>
-              {data.rank_in_batch != null && (
-                <div className="mt-4 inline-flex items-center gap-1 rounded-full bg-amber-500/10 border border-amber-500/20 px-3.5 py-1.5 text-xs font-bold text-amber-400">
-                  <Award className="w-3.5 h-3.5" />
-                  <span>Batch Rank: #{data.rank_in_batch}</span>
+            {/* Score card (Flip Animation) */}
+            <div className="md:col-span-2 relative" style={{ perspective: 1000 }} onClick={() => setIsScoreFlipped(!isScoreFlipped)}>
+              <motion.div
+                animate={{ rotateX: isScoreFlipped ? 180 : 0 }}
+                transition={{ duration: 0.6, type: "spring", stiffness: 260, damping: 20 }}
+                style={{ transformStyle: "preserve-3d", transformOrigin: "center" }}
+                className="w-full h-full cursor-pointer"
+              >
+                {/* Front */}
+                <div style={{ backfaceVisibility: "hidden" }} className="w-full h-full">
+                  <Card className="text-center relative overflow-hidden group h-full flex flex-col justify-center items-center py-8">
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-cyan-500/5 to-violet-500/5 rounded-full blur-2xl pointer-events-none" />
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Total Score</p>
+                    <p className="text-5xl font-black text-gradient tracking-tight">
+                      {data.total_score?.toFixed(1) ?? "—"}
+                    </p>
+                    {data.rank_in_batch != null && (
+                      <div className="mt-4 inline-flex items-center gap-1 rounded-full bg-amber-500/10 border border-amber-500/20 px-3.5 py-1.5 text-xs font-bold text-amber-400">
+                        <Award className="w-3.5 h-3.5" />
+                        <span>Batch Rank: #{data.rank_in_batch}</span>
+                      </div>
+                    )}
+                    <p className="mt-4 text-[9px] text-cyan-500 font-bold opacity-60">Tap to flip</p>
+                  </Card>
                 </div>
-              )}
-            </Card>
+
+                {/* Back */}
+                <div 
+                  style={{ backfaceVisibility: "hidden", transform: "rotateX(180deg)", position: "absolute", top: 0, left: 0, right: 0, bottom: 0 }} 
+                  className="w-full h-full"
+                >
+                  <Card className="text-center relative overflow-hidden group h-full flex flex-col justify-center items-center py-6 border-cyan-500/30 bg-[#0d101d]">
+                    <div className="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-tr from-emerald-500/5 to-cyan-500/5 rounded-full blur-2xl pointer-events-none" />
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-3">Performance Overview</p>
+                    <div className="w-full px-8 space-y-2">
+                      <div className="flex justify-between text-xs">
+                        <span className="text-zinc-400">Accuracy</span>
+                        <span className="font-bold text-emerald-400">
+                          {correctCount + wrongCount > 0 ? Math.round((correctCount / (correctCount + wrongCount)) * 100) : 0}%
+                        </span>
+                      </div>
+                      <div className="flex justify-between text-xs">
+                        <span className="text-zinc-400">Questions Attempted</span>
+                        <span className="font-bold text-cyan-400">
+                          {correctCount + wrongCount} / {correctCount + wrongCount + skippedCount}
+                        </span>
+                      </div>
+                    </div>
+                  </Card>
+                </div>
+              </motion.div>
+            </div>
 
             {/* General metrics */}
             <div className="grid grid-cols-3 md:grid-cols-1 gap-3">

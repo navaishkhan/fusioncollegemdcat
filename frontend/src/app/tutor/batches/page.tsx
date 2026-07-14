@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import MobileNav, { AuthGuard } from "@/components/MobileNav";
 import { Card, PageShell } from "@/components/Brand";
 import { apiFetch } from "@/lib/api";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface Batch {
   id: string;
@@ -209,16 +210,19 @@ export default function BatchesPage() {
                       ))}
                     </div>
                   )}
-                </div>
-              )}
-            </Card>
+                  </div>
+
+                )}
+              </Card>
+            </motion.div>
           ))}
-          {!error && batches.length === 0 && (
-            <p className="text-center text-sm text-zinc-500">
-              No batches created yet.
+          </AnimatePresence>
+          {batches.length === 0 && !error && (
+            <p className="py-8 text-center text-sm text-zinc-500">
+              No batches yet.
             </p>
           )}
-        </div>
+        </motion.div>
       </PageShell>
       <MobileNav />
     </AuthGuard>

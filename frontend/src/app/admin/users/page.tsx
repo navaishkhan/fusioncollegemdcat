@@ -6,9 +6,10 @@ import { Card, PageShell } from "@/components/Brand";
 import { apiFetch } from "@/lib/api";
 import {
   Bell, KeyRound, X, CheckCircle2, Loader2, ShieldAlert,
-  Plus, UserPlus, BookOpen, Shield, Camera, User
+  Plus, UserPlus, BookOpen, Shield, Camera, User, Trash2
 } from "lucide-react";
 import Image from "next/image";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface UserItem {
   id: string;
@@ -86,6 +87,10 @@ export default function AdminUsersPage() {
   const [picturePreview, setPicturePreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Delete User modal
+  const [deleteModal, setDeleteModal] = useState<{ id: string; name: string } | null>(null);
+  const [deletingUser, setDeletingUser] = useState(false);
+
   const fetchUsers = () => {
     const params = filterRole ? `?role=${filterRole}` : "";
     apiFetch<UserItem[]>(`/api/admin/users${params}`)
@@ -134,6 +139,23 @@ export default function AdminUsersPage() {
       setUsers((prev) => prev.map((u) => (u.id === userId ? { ...u, parent_id: parentId || null } : u)));
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed");
+    }
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteModal) return;
+    setDeletingUser(true);
+    setError(null);
+    try {
+      await apiFetch(`/api/admin/users/${deleteModal.id}`, { method: "DELETE" });
+      setUpdateMsg(`Deleted user ${deleteModal.name}`);
+      setUsers((prev) => prev.filter((u) => u.id !== deleteModal.id));
+      setSearchResults((prev) => prev.filter((u) => u.id !== deleteModal.id));
+      setDeleteModal(null);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to delete user");
+    } finally {
+      setDeletingUser(false);
     }
   };
 
@@ -355,84 +377,112 @@ export default function AdminUsersPage() {
           </div>
         </div>
 
-        <div className="space-y-2">
+        <motion.div 
+          className="space-y-2"
+          initial="hidden"
+          animate="show"
+          variants={{
+            hidden: { opacity: 0 },
+            show: { opacity: 1, transition: { staggerChildren: 0.05 } }
+          }}
+        >
+          <AnimatePresence>
           {displayed.map((u) => (
-            <Card key={u.id}>
-              <div className="flex items-start justify-between gap-2">
-                <div className="flex items-start gap-3 min-w-0 flex-1">
-                  {/* Profile Picture */}
-                  <div className="shrink-0 h-10 w-10 rounded-full overflow-hidden border border-[#2b3052] bg-[#16192b] flex items-center justify-center">
-                    {u.profile_picture_url ? (
-                      <Image src={u.profile_picture_url} alt={u.full_name} width={40} height={40} className="object-cover w-full h-full" />
-                    ) : (
-                      <User className="h-5 w-5 text-zinc-600" />
-                    )}
-                  </div>
-                  <div className="min-w-0">
-                    <h3 className="text-sm font-semibold text-white">{u.full_name}</h3>
-                    <p className="text-xs text-zinc-500">{u.email}</p>
-                    {u.specialization && <p className="text-[10px] text-purple-400 mt-0.5">{u.specialization}</p>}
-                    <div className="mt-1 flex flex-wrap gap-1.5">
-                      <span className="rounded-full bg-purple-500/20 px-1.5 py-0.5 text-[9px] font-bold uppercase text-purple-300">
-                        {u.role}
-                      </span>
-                      <span className={`rounded-full px-1.5 py-0.5 text-[9px] font-bold ${u.is_active ? "bg-emerald-500/20 text-emerald-400" : "bg-red-500/20 text-red-400"}`}>
-                        {u.is_active ? "Active" : "Inactive"}
-                      </span>
-                      {resetRequests.some((r) => r.user_id === u.id) && (
-                        <span className="rounded-full bg-amber-500/20 px-1.5 py-0.5 text-[9px] font-bold text-amber-400 flex items-center gap-0.5">
-                          <ShieldAlert className="h-2.5 w-2.5" /> Reset Requested
-                        </span>
+            <motion.div
+              key={u.id}
+              layout
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              transition={{ duration: 0.2 }}
+            >
+              <Card>
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex items-start gap-3 min-w-0 flex-1">
+                    {/* Profile Picture */}
+                    <div className="shrink-0 h-10 w-10 rounded-full overflow-hidden border border-[#2b3052] bg-[#16192b] flex items-center justify-center">
+                      {u.profile_picture_url ? (
+                        <Image src={u.profile_picture_url} alt={u.full_name} width={40} height={40} className="object-cover w-full h-full" />
+                      ) : (
+                        <User className="h-5 w-5 text-zinc-600" />
                       )}
+                    </div>
+                    <div className="min-w-0">
+                      <h3 className="text-sm font-semibold text-white">{u.full_name}</h3>
+                      <p className="text-xs text-zinc-500">{u.email}</p>
+                      {u.specialization && <p className="text-[10px] text-purple-400 mt-0.5">{u.specialization}</p>}
+                      <div className="mt-1 flex flex-wrap gap-1.5">
+                        <span className="rounded-full bg-purple-500/20 px-1.5 py-0.5 text-[9px] font-bold uppercase text-purple-300">
+                          {u.role}
+                        </span>
+                        <span className={`rounded-full px-1.5 py-0.5 text-[9px] font-bold ${u.is_active ? "bg-emerald-500/20 text-emerald-400" : "bg-red-500/20 text-red-400"}`}>
+                          {u.is_active ? "Active" : "Inactive"}
+                        </span>
+                        {resetRequests.some((r) => r.user_id === u.id) && (
+                          <span className="rounded-full bg-amber-500/20 px-1.5 py-0.5 text-[9px] font-bold text-amber-400 flex items-center gap-0.5">
+                            <ShieldAlert className="h-2.5 w-2.5" /> Reset Requested
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex shrink-0 flex-col gap-1.5">
+                    <button
+                      onClick={() => toggleActive(u.id, u.is_active)}
+                      className={`rounded-lg px-3 py-1 text-xs font-semibold ${u.is_active ? "bg-red-600/30 text-red-300" : "bg-emerald-600/30 text-emerald-300"}`}
+                    >
+                      {u.is_active ? "Deactivate" : "Activate"}
+                    </button>
+                    <div className="flex gap-1.5">
+                      <button
+                        onClick={() => openResetModal(u)}
+                        className="flex-1 flex items-center justify-center gap-1 rounded-lg bg-cyan-600/20 px-3 py-1 text-xs font-semibold text-cyan-300 hover:bg-cyan-600/30"
+                      >
+                        <KeyRound className="h-3 w-3" /> Reset
+                      </button>
+                      <button
+                        onClick={() => setDeleteModal({ id: u.id, name: u.full_name })}
+                        className="flex shrink-0 items-center justify-center rounded-lg bg-red-600/20 px-2 py-1 text-red-400 hover:bg-red-600/40 transition-colors"
+                        title="Delete User"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </button>
                     </div>
                   </div>
                 </div>
-                <div className="flex shrink-0 flex-col gap-1.5">
-                  <button
-                    onClick={() => toggleActive(u.id, u.is_active)}
-                    className={`rounded-lg px-3 py-1 text-xs font-semibold ${u.is_active ? "bg-red-600/30 text-red-300" : "bg-emerald-600/30 text-emerald-300"}`}
-                  >
-                    {u.is_active ? "Deactivate" : "Activate"}
-                  </button>
-                  <button
-                    onClick={() => openResetModal(u)}
-                    className="flex items-center justify-center gap-1 rounded-lg bg-cyan-600/20 px-3 py-1 text-xs font-semibold text-cyan-300 hover:bg-cyan-600/30"
-                  >
-                    <KeyRound className="h-3 w-3" /> Reset PW
-                  </button>
-                </div>
-              </div>
-              {u.role === "student" && (
-                <div className="mt-2 flex items-center gap-2 border-t border-[#1e233d] pt-2">
-                  <select
-                    id={`parent-${u.id}`}
-                    defaultValue={u.parent_id || ""}
-                    className="flex-1 rounded-lg border border-[#2b3052] bg-[#0a0c14] px-2 py-1.5 text-xs text-white"
-                  >
-                    <option value="">No Parent Linked</option>
-                    {users.filter(p => p.role === "parent").map(p => (
-                      <option key={p.id} value={p.id}>
-                        {p.full_name} ({p.email})
-                      </option>
-                    ))}
-                  </select>
-                  <button
-                    onClick={() => {
-                      const select = document.getElementById(`parent-${u.id}`) as HTMLSelectElement;
-                      setParent(u.id, select.value);
-                    }}
-                    className="rounded-lg bg-cyan-600/20 text-cyan-300 hover:bg-cyan-600/40 px-3 py-1.5 text-xs font-bold transition-colors"
-                  >
-                    Save Parent
-                  </button>
-                </div>
-              )}
-            </Card>
+                {u.role === "student" && (
+                  <div className="mt-2 flex items-center gap-2 border-t border-[#1e233d] pt-2">
+                    <select
+                      id={`parent-${u.id}`}
+                      defaultValue={u.parent_id || ""}
+                      className="flex-1 rounded-lg border border-[#2b3052] bg-[#0a0c14] px-2 py-1.5 text-xs text-white"
+                    >
+                      <option value="">No Parent Linked</option>
+                      {users.filter(p => p.role === "parent").map(p => (
+                        <option key={p.id} value={p.id}>
+                          {p.full_name} ({p.email})
+                        </option>
+                      ))}
+                    </select>
+                    <button
+                      onClick={() => {
+                        const select = document.getElementById(`parent-${u.id}`) as HTMLSelectElement;
+                        setParent(u.id, select.value);
+                      }}
+                      className="rounded-lg bg-cyan-600/20 text-cyan-300 hover:bg-cyan-600/40 px-3 py-1.5 text-xs font-bold transition-colors"
+                    >
+                      Save Parent
+                    </button>
+                  </div>
+                )}
+              </Card>
+            </motion.div>
           ))}
+          </AnimatePresence>
           {!error && displayed.length === 0 && (
             <p className="text-center text-sm text-zinc-500">No users found.</p>
           )}
-        </div>
+        </motion.div>
       </PageShell>
 
       {/* Reset Password Modal */}
@@ -555,6 +605,46 @@ export default function AdminUsersPage() {
           </div>
         );
       })()}
+
+      {/* Delete User Modal */}
+      {deleteModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
+          <motion.div
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="w-full max-w-md rounded-3xl border border-red-500/30 bg-[#0d0f1e] p-6 shadow-2xl"
+          >
+            <div className="mb-4 flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-red-500/20">
+                <Trash2 className="h-5 w-5 text-red-400" />
+              </div>
+              <div>
+                <h2 className="text-sm font-bold text-white">Delete User</h2>
+                <p className="text-xs text-zinc-500">{deleteModal.name}</p>
+              </div>
+            </div>
+            <p className="mb-6 text-sm text-zinc-300">
+              Are you sure you want to permanently delete this user? This will also erase all their test scores, answers, and batch enrollments. This action cannot be undone.
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setDeleteModal(null)}
+                className="flex-1 rounded-xl border border-[#2b3052] bg-transparent py-3 text-sm font-bold text-white hover:bg-[#16192b]"
+                disabled={deletingUser}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmDelete}
+                disabled={deletingUser}
+                className="flex-1 rounded-xl bg-red-600 py-3 text-sm font-bold text-white flex items-center justify-center gap-2 hover:bg-red-500 disabled:opacity-50"
+              >
+                {deletingUser ? <><Loader2 className="h-4 w-4 animate-spin" /> Deleting...</> : "Delete"}
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
 
       <MobileNav />
     </AuthGuard>

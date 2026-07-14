@@ -73,6 +73,37 @@ def update_user(
     return user
 
 
+@router.delete("/users/{user_id}")
+def delete_user(
+    user_id: UUID,
+    db: Session = Depends(get_db),
+    _: User = Depends(require_roles(UserRole.ADMIN)),
+):
+    user = db.get(User, user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+        
+    # Check if they created anything critical
+    q_count = db.query(Question).filter(Question.created_by_id == user_id).count()
+    t_count = db.query(Test).filter(Test.created_by_id == user_id).count()
+    if q_count > 0 or t_count > 0:
+        raise HTTPException(status_code=400, detail="Cannot delete a user who has created questions or tests. Deactivate them instead.")
+        
+    # Clean up student data
+    db.query(AttemptAnswer).filter(AttemptAnswer.attempt_id.in_(
+        db.query(TestAttempt.id).filter(TestAttempt.student_id == user_id)
+    )).delete(synchronize_session=False)
+    db.query(TestAttempt).filter(TestAttempt.student_id == user_id).delete(synchronize_session=False)
+    db.query(Enrollment).filter(Enrollment.student_id == user_id).delete(synchronize_session=False)
+    
+    # Delete children relationships (if parent)
+    db.query(User).filter(User.parent_id == user_id).update({"parent_id": None}, synchronize_session=False)
+
+    db.delete(user)
+    db.commit()
+    return {"status": "ok"}
+
+
 @router.get("/password-reset-requests")
 def list_password_reset_requests(
     db: Session = Depends(get_db),
