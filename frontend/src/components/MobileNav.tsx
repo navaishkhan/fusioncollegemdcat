@@ -234,12 +234,19 @@ export default function MobileNav() {
       </AnimatePresence>
 
       {/* Desktop Left Sidebar */}
-      <aside className="hidden md:flex flex-col fixed left-0 top-0 bottom-0 w-64 border-r border-[#1e223c] bg-[#0c0e1a]/95 backdrop-blur-xl py-6 px-4 z-30 justify-between">
+      <aside className="hidden md:flex flex-col fixed left-4 top-4 bottom-4 w-64 rounded-3xl glass-panel glossy-border bg-[rgba(12,14,26,0.6)] backdrop-blur-3xl shadow-2xl py-6 px-4 z-30 justify-between overflow-y-auto scrollbar-none">
         <div className="space-y-6">
-          <div className="px-3 py-2">
-            <h2 className="text-gradient text-lg font-black tracking-wider uppercase">FUSION MDCAT</h2>
-            <div className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-1">
-              {user.role} Portal
+          <div className="px-3 py-2 flex items-center gap-3">
+            <div className="h-10 w-10 shrink-0 rounded-2xl bg-gradient-to-br from-cyan-400 to-purple-600 p-[1px] shadow-lg shadow-cyan-500/20">
+              <div className="flex h-full w-full items-center justify-center rounded-2xl bg-[#0a0c14]">
+                <span className="font-editorial text-lg font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-purple-400">F</span>
+              </div>
+            </div>
+            <div>
+              <h2 className="text-sm font-black tracking-widest text-white uppercase">FUSION MDCAT</h2>
+              <div className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">
+                {user.role} Portal
+              </div>
             </div>
           </div>
           
@@ -251,22 +258,24 @@ export default function MobileNav() {
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`relative flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all duration-300 group ${
-                    active ? "text-cyan-400" : "text-slate-400 hover:text-slate-200"
+                  className={`relative flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-semibold transition-all duration-300 group ${
+                    active ? "text-white" : "text-slate-400 hover:text-white"
                   }`}
                 >
                   {active && (
                     <motion.div
                       layoutId="active-pill-desktop"
-                      className="absolute inset-0 bg-[#7c3aed]/10 rounded-xl border border-[#7c3aed]/25 shadow-lg shadow-[#7c3aed]/5"
+                      className="absolute inset-0 bg-gradient-to-r from-cyan-500/20 to-purple-500/20 rounded-2xl border border-cyan-500/30 shadow-lg shadow-cyan-500/10"
                       transition={{ type: "spring", stiffness: 380, damping: 30 }}
                     />
                   )}
                   {/* Subtle animation indicator for inactive links on hover */}
                   {!active && (
-                    <div className="absolute inset-0 bg-white/0 rounded-xl transition-all duration-300 group-hover:bg-white/5" />
+                    <div className="absolute inset-0 bg-white/0 rounded-2xl transition-all duration-300 group-hover:bg-white/5" />
                   )}
-                  <Icon className={`w-5 h-5 relative z-10 transition-colors duration-300 ${active ? "text-cyan-400 animate-pulse" : "text-slate-400 group-hover:text-cyan-300"}`} />
+                  <div className={`relative z-10 flex h-8 w-8 shrink-0 items-center justify-center rounded-xl transition-all duration-300 ${active ? 'bg-cyan-500/20 text-cyan-400 shadow-inner' : 'bg-[#16192b] text-slate-400 group-hover:bg-[#1e223c] group-hover:text-cyan-300'}`}>
+                    <Icon className={`w-4 h-4 ${active ? "animate-pulse" : ""}`} />
+                  </div>
                   <span className="relative z-10 transition-transform duration-300 group-hover:translate-x-0.5">{item.label}</span>
                 </Link>
               );
@@ -276,9 +285,9 @@ export default function MobileNav() {
 
         <button
           onClick={handleLogout}
-          className="flex items-center gap-3 px-4 py-3.5 rounded-xl text-sm font-semibold text-rose-400 hover:bg-rose-500/10 transition-colors mt-auto cursor-pointer border border-transparent hover:border-rose-500/10"
+          className="flex items-center justify-center gap-2 px-4 py-3.5 rounded-2xl text-sm font-bold text-rose-400 bg-rose-500/10 hover:bg-rose-500/20 transition-colors mt-auto cursor-pointer border border-rose-500/10 hover:border-rose-500/30"
         >
-          <LogOut className="w-5 h-5 animate-pulse" />
+          <LogOut className="w-4 h-4" />
           <span>Sign Out</span>
         </button>
       </aside>

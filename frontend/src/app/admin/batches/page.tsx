@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import MobileNav, { AuthGuard } from "@/components/MobileNav";
 import { Card, PageShell } from "@/components/Brand";
 import { apiFetch } from "@/lib/api";
-import { Plus, Users, X, Loader2, ChevronRight, CheckCircle2 } from "lucide-react";
+import { Plus, Users, X, Loader2, ChevronRight, CheckCircle2, Trash2, CheckSquare, Square } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface Batch {
@@ -40,6 +40,12 @@ export default function AdminBatchesPage() {
   const [loadingEnrollments, setLoadingEnrollments] = useState(false);
   const [studentToEnroll, setStudentToEnroll] = useState("");
   const [enrolling, setEnrolling] = useState(false);
+
+  // Bulk select
+  const [selectMode, setSelectMode] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [bulkDeleting, setBulkDeleting] = useState(false);
+  const [confirmBulk, setConfirmBulk] = useState(false);
 
   const fetchBatches = async () => {
     try {
@@ -82,6 +88,47 @@ export default function AdminBatchesPage() {
       setError(e instanceof Error ? e.message : "Failed to create batch");
     } finally {
       setCreating(false);
+    }
+  };
+
+  const toggleSelect = (id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+  };
+
+  const toggleAll = () => {
+    if (selectedIds.size === batches.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(batches.map((b) => b.id)));
+    }
+  };
+
+  const exitSelectMode = () => {
+    setSelectMode(false);
+    setSelectedIds(new Set());
+    setConfirmBulk(false);
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedIds.size === 0) return;
+    setBulkDeleting(true);
+    setError(null);
+    try {
+      await Promise.all(
+        [...selectedIds].map((id) => apiFetch(`/api/batches/${id}`, { method: "DELETE" }))
+      );
+      setMsg(`Deleted ${selectedIds.size} batch${selectedIds.size > 1 ? "es" : ""}`);
+      setBatches((prev) => prev.filter((b) => !selectedIds.has(b.id)));
+      exitSelectMode();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Bulk delete failed");
+    } finally {
+      setBulkDeleting(false);
+      setConfirmBulk(false);
     }
   };
 
@@ -137,13 +184,48 @@ export default function AdminBatchesPage() {
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -20 }}
             >
-              <div className="mb-4 flex justify-end">
-                <button
-                  onClick={() => setShowCreateModal(true)}
-                  className="flex items-center gap-1.5 rounded-xl bg-[#3d4193] px-4 py-2 text-sm font-semibold text-white hover:bg-[#252a4a] transition-colors"
-                >
-                  <Plus className="h-4 w-4" /> Create Batch
-                </button>
+              {/* Batch List Toolbar */}
+              <div className="mb-4 flex items-center gap-2">
+                {!selectMode ? (
+                  <>
+                    <button
+                      onClick={() => setShowCreateModal(true)}
+                      className="flex items-center gap-1.5 rounded-xl bg-[#3d4193] px-4 py-2 text-sm font-semibold text-white hover:bg-[#252a4a] transition-colors"
+                    >
+                      <Plus className="h-4 w-4" /> Create Batch
+                    </button>
+                    {batches.length > 0 && (
+                      <button
+                        onClick={() => setSelectMode(true)}
+                        className="flex items-center gap-1.5 rounded-xl border border-[#2b3052] bg-[#16192b] px-3 py-2 text-xs font-semibold text-zinc-400 hover:text-white transition-colors"
+                      >
+                        <CheckSquare className="h-4 w-4" /> Select
+                      </button>
+                    )}
+                  </>
+                ) : (
+                  <>
+                    <button
+                      onClick={toggleAll}
+                      className="flex items-center gap-1.5 rounded-xl border border-[#2b3052] bg-[#16192b] px-3 py-2 text-xs font-bold text-zinc-300 hover:text-white transition-colors"
+                    >
+                      {selectedIds.size === batches.length ? <CheckSquare className="h-4 w-4 text-cyan-400" /> : <Square className="h-4 w-4" />}
+                      {selectedIds.size === batches.length ? "Deselect All" : "Select All"}
+                    </button>
+                    <span className="text-xs text-zinc-500 flex-1 text-center">{selectedIds.size} selected</span>
+                    {selectedIds.size > 0 && (
+                      <button
+                        onClick={() => setConfirmBulk(true)}
+                        className="flex items-center gap-1.5 rounded-xl bg-red-600/20 border border-red-500/30 px-3 py-2 text-xs font-bold text-red-400 hover:bg-red-600/30 transition-colors"
+                      >
+                        <Trash2 className="h-4 w-4" /> Delete
+                      </button>
+                    )}
+                    <button onClick={exitSelectMode} className="rounded-xl border border-[#2b3052] p-2 text-zinc-400 hover:text-white">
+                      <X className="h-4 w-4" />
+                    </button>
+                  </>
+                )}
               </div>
 
               {loading ? (
@@ -157,19 +239,31 @@ export default function AdminBatchesPage() {
                 </div>
               ) : (
                 <div className="grid gap-3 sm:grid-cols-2">
-                  {batches.map((b) => (
-                    <Card key={b.id} onClick={() => openBatchDetails(b)}>
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <h3 className="text-lg font-bold text-white">{b.name}</h3>
-                          {b.description && (
-                            <p className="mt-1 text-xs text-zinc-400 line-clamp-2">{b.description}</p>
+                  {batches.map((b) => {
+                    const isSelected = selectedIds.has(b.id);
+                    return (
+                      <Card
+                        key={b.id}
+                        onClick={selectMode ? () => toggleSelect(b.id) : () => openBatchDetails(b)}
+                        className={selectMode && isSelected ? "border-cyan-500/50 bg-cyan-500/5" : ""}
+                      >
+                        <div className="flex items-center justify-between">
+                          {selectMode && (
+                            <div className="shrink-0 mr-3">
+                              {isSelected ? <CheckSquare className="h-5 w-5 text-cyan-400" /> : <Square className="h-5 w-5 text-zinc-600" />}
+                            </div>
                           )}
+                          <div className="flex-1 min-w-0">
+                            <h3 className="text-lg font-bold text-white">{b.name}</h3>
+                            {b.description && (
+                              <p className="mt-1 text-xs text-zinc-400 line-clamp-2">{b.description}</p>
+                            )}
+                          </div>
+                          {!selectMode && <ChevronRight className="h-5 w-5 text-zinc-500" />}
                         </div>
-                        <ChevronRight className="h-5 w-5 text-zinc-500" />
-                      </div>
-                    </Card>
-                  ))}
+                      </Card>
+                    );
+                  })}
                 </div>
               )}
             </motion.div>

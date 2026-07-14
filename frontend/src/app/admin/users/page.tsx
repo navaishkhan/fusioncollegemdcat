@@ -6,7 +6,8 @@ import { Card, PageShell } from "@/components/Brand";
 import { apiFetch } from "@/lib/api";
 import {
   Bell, KeyRound, X, CheckCircle2, Loader2, ShieldAlert,
-  Plus, UserPlus, BookOpen, Shield, Camera, User, Trash2
+  Plus, UserPlus, BookOpen, Shield, Camera, User, Trash2,
+  CheckSquare, Square
 } from "lucide-react";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
@@ -93,6 +94,12 @@ export default function AdminUsersPage() {
   const [deleteModal, setDeleteModal] = useState<{ id: string; name: string } | null>(null);
   const [deletingUser, setDeletingUser] = useState(false);
 
+  // Bulk select
+  const [selectMode, setSelectMode] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [bulkDeleting, setBulkDeleting] = useState(false);
+  const [confirmBulk, setConfirmBulk] = useState(false);
+
   const fetchUsers = () => {
     setLoading(true);
     const params = filterRole ? `?role=${filterRole}` : "";
@@ -160,6 +167,50 @@ export default function AdminUsersPage() {
       setError(e instanceof Error ? e.message : "Failed to delete user");
     } finally {
       setDeletingUser(false);
+    }
+  };
+
+  const toggleSelect = (id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+  };
+
+  const toggleAll = () => {
+    const displayedIds = displayed.map((u) => u.id);
+    const allSelected = displayedIds.every(id => selectedIds.has(id));
+    if (allSelected) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(displayedIds));
+    }
+  };
+
+  const exitSelectMode = () => {
+    setSelectMode(false);
+    setSelectedIds(new Set());
+    setConfirmBulk(false);
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedIds.size === 0) return;
+    setBulkDeleting(true);
+    setError(null);
+    try {
+      await Promise.all(
+        [...selectedIds].map((id) => apiFetch(`/api/admin/users/${id}`, { method: "DELETE" }))
+      );
+      setUpdateMsg(`Deleted ${selectedIds.size} user${selectedIds.size > 1 ? "s" : ""}`);
+      setUsers((prev) => prev.filter((u) => !selectedIds.has(u.id)));
+      setSearchResults((prev) => prev.filter((u) => !selectedIds.has(u.id)));
+      exitSelectMode();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Bulk delete failed");
+    } finally {
+      setBulkDeleting(false);
+      setConfirmBulk(false);
     }
   };
 
@@ -367,26 +418,57 @@ export default function AdminUsersPage() {
               </button>
             ))}
           </div>
-          <div className="grid grid-cols-3 gap-2">
-            <button
-              onClick={() => openAddModal("student")}
-              className="flex items-center justify-center gap-1.5 rounded-xl border border-cyan-500/20 bg-cyan-500/10 py-2.5 text-xs font-bold text-cyan-300 hover:bg-cyan-500/20 transition-colors"
-            >
-              <UserPlus className="h-3.5 w-3.5" /> Add Student
-            </button>
-            <button
-              onClick={() => openAddModal("tutor")}
-              className="flex items-center justify-center gap-1.5 rounded-xl border border-purple-500/20 bg-purple-500/10 py-2.5 text-xs font-bold text-purple-300 hover:bg-purple-500/20 transition-colors"
-            >
-              <BookOpen className="h-3.5 w-3.5" /> Add Tutor
-            </button>
-            <button
-              onClick={() => openAddModal("admin")}
-              className="flex items-center justify-center gap-1.5 rounded-xl border border-rose-500/20 bg-rose-500/10 py-2.5 text-xs font-bold text-rose-300 hover:bg-rose-500/20 transition-colors"
-            >
-              <Shield className="h-3.5 w-3.5" /> Add Admin
-            </button>
-          </div>
+
+          {!selectMode ? (
+            <div className="grid grid-cols-4 gap-2">
+              <button
+                onClick={() => setSelectMode(true)}
+                className="flex items-center justify-center gap-1.5 rounded-xl border border-zinc-500/20 bg-zinc-500/10 py-2.5 text-xs font-bold text-zinc-300 hover:bg-zinc-500/20 transition-colors"
+              >
+                <CheckSquare className="h-3.5 w-3.5" /> Select
+              </button>
+              <button
+                onClick={() => openAddModal("student")}
+                className="flex items-center justify-center gap-1.5 rounded-xl border border-cyan-500/20 bg-cyan-500/10 py-2.5 text-xs font-bold text-cyan-300 hover:bg-cyan-500/20 transition-colors"
+              >
+                <UserPlus className="h-3.5 w-3.5" /> Student
+              </button>
+              <button
+                onClick={() => openAddModal("tutor")}
+                className="flex items-center justify-center gap-1.5 rounded-xl border border-purple-500/20 bg-purple-500/10 py-2.5 text-xs font-bold text-purple-300 hover:bg-purple-500/20 transition-colors"
+              >
+                <BookOpen className="h-3.5 w-3.5" /> Tutor
+              </button>
+              <button
+                onClick={() => openAddModal("admin")}
+                className="flex items-center justify-center gap-1.5 rounded-xl border border-rose-500/20 bg-rose-500/10 py-2.5 text-xs font-bold text-rose-300 hover:bg-rose-500/20 transition-colors"
+              >
+                <Shield className="h-3.5 w-3.5" /> Admin
+              </button>
+            </div>
+          ) : (
+            <div className="flex items-center gap-2">
+              <button
+                onClick={toggleAll}
+                className="flex items-center gap-1.5 rounded-xl border border-[#2b3052] bg-[#16192b] px-3 py-2 text-xs font-bold text-zinc-300 hover:text-white transition-colors"
+              >
+                {selectedIds.size === displayed.length && displayed.length > 0 ? <CheckSquare className="h-4 w-4 text-cyan-400" /> : <Square className="h-4 w-4" />}
+                {selectedIds.size === displayed.length && displayed.length > 0 ? "Deselect All" : "Select All"}
+              </button>
+              <span className="text-xs text-zinc-500 flex-1 text-center">{selectedIds.size} selected</span>
+              {selectedIds.size > 0 && (
+                <button
+                  onClick={() => setConfirmBulk(true)}
+                  className="flex items-center gap-1.5 rounded-xl bg-red-600/20 border border-red-500/30 px-3 py-2 text-xs font-bold text-red-400 hover:bg-red-600/30 transition-colors"
+                >
+                  <Trash2 className="h-4 w-4" /> Delete
+                </button>
+              )}
+              <button onClick={exitSelectMode} className="rounded-xl border border-[#2b3052] p-2 text-zinc-400 hover:text-white">
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+          )}
         </div>
 
         {loading ? (
@@ -404,67 +486,28 @@ export default function AdminUsersPage() {
             }}
           >
             <AnimatePresence>
-            {displayed.map((u) => (
-            <motion.div
-              key={u.id}
-              layout
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              transition={{ duration: 0.2 }}
-            >
-              <Card>
-                <div className="flex items-start justify-between gap-2">
-                  <div className="flex items-start gap-3 min-w-0 flex-1">
-                    {/* Profile Picture */}
-                    <div className="shrink-0 h-10 w-10 rounded-full overflow-hidden border border-[#2b3052] bg-[#16192b] flex items-center justify-center">
-                      {u.profile_picture_url ? (
-                        <Image src={u.profile_picture_url} alt={u.full_name} width={40} height={40} className="object-cover w-full h-full" />
-                      ) : (
-                        <User className="h-5 w-5 text-zinc-600" />
-                      )}
-                    </div>
-                    <div className="min-w-0">
-                      <h3 className="text-sm font-semibold text-white">{u.full_name}</h3>
-                      <p className="text-xs text-zinc-500">{u.email}</p>
-                      {u.specialization && <p className="text-[10px] text-purple-400 mt-0.5">{u.specialization}</p>}
-                      <div className="mt-1 flex flex-wrap gap-1.5">
-                        <span className="rounded-full bg-purple-500/20 px-1.5 py-0.5 text-[9px] font-bold uppercase text-purple-300">
-                          {u.role}
-                        </span>
-                        <span className={`rounded-full px-1.5 py-0.5 text-[9px] font-bold ${u.is_active ? "bg-emerald-500/20 text-emerald-400" : "bg-amber-500/20 text-amber-400"}`}>
-                          {u.is_active ? "Active" : "Pending Verification / Inactive"}
-                        </span>
-                        {resetRequests.some((r) => r.user_id === u.id) && (
-                          <span className="rounded-full bg-amber-500/20 px-1.5 py-0.5 text-[9px] font-bold text-amber-400 flex items-center gap-0.5">
-                            <ShieldAlert className="h-2.5 w-2.5" /> Reset Requested
-                          </span>
+            {displayed.map((u) => {
+              const isSelected = selectedIds.has(u.id);
+              return (
+                <motion.div
+                  key={u.id}
+                  layout
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <Card
+                    onClick={selectMode ? () => toggleSelect(u.id) : undefined}
+                    className={selectMode && isSelected ? "border-cyan-500/50 bg-cyan-500/5" : ""}
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex items-start gap-3 min-w-0 flex-1">
+                        {selectMode && (
+                          <div className="shrink-0 mt-2 mr-1">
+                            {isSelected ? <CheckSquare className="h-5 w-5 text-cyan-400" /> : <Square className="h-5 w-5 text-zinc-600" />}
+                          </div>
                         )}
-                      </div>
-                    </div>
-                  </div>
-                  <div className="flex shrink-0 flex-col gap-1.5">
-                    <button
-                      onClick={() => toggleActive(u.id, u.is_active)}
-                      className={`rounded-lg px-3 py-1 text-xs font-semibold ${u.is_active ? "bg-red-600/30 text-red-300" : "bg-emerald-600/30 text-emerald-300"}`}
-                    >
-                      {u.is_active ? "Deactivate" : "Approve / Activate"}
-                    </button>
-                    <div className="flex gap-1.5">
-                      <button
-                        onClick={() => openResetModal(u)}
-                        className="flex-1 flex items-center justify-center gap-1 rounded-lg bg-cyan-600/20 px-3 py-1 text-xs font-semibold text-cyan-300 hover:bg-cyan-600/30"
-                      >
-                        <KeyRound className="h-3 w-3" /> Reset
-                      </button>
-                      <button
-                        onClick={() => setDeleteModal({ id: u.id, name: u.full_name })}
-                        className="flex shrink-0 items-center justify-center rounded-lg bg-red-600/20 px-2 py-1 text-red-400 hover:bg-red-600/40 transition-colors"
-                        title="Delete User"
-                      >
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </button>
-                    </div>
                   </div>
                 </div>
                 {u.role === "student" && (
@@ -493,8 +536,9 @@ export default function AdminUsersPage() {
                 )}
               </Card>
             </motion.div>
-            ))}
-            </AnimatePresence>
+            );
+          })}
+          </AnimatePresence>
             {!error && displayed.length === 0 && (
               <p className="text-center text-sm text-zinc-500">No users found.</p>
             )}
@@ -662,6 +706,54 @@ export default function AdminUsersPage() {
           </motion.div>
         </div>
       )}
+
+      {/* Bulk Delete Confirm Modal */}
+      <AnimatePresence>
+        {confirmBulk && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4"
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="w-full max-w-sm rounded-3xl border border-red-500/30 bg-[#0d0f1e] p-6 shadow-2xl"
+            >
+              <div className="mb-4 flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-red-500/20">
+                  <Trash2 className="h-5 w-5 text-red-400" />
+                </div>
+                <div>
+                  <h2 className="text-sm font-bold text-white">Delete {selectedIds.size} Users</h2>
+                  <p className="text-xs text-zinc-500">This action is irreversible</p>
+                </div>
+              </div>
+              <p className="mb-6 text-sm text-zinc-300">
+                Are you sure you want to permanently delete these users? This action cannot be undone.
+              </p>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setConfirmBulk(false)}
+                  disabled={bulkDeleting}
+                  className="flex-1 rounded-xl border border-[#2b3052] py-3 text-sm font-bold text-white hover:bg-[#16192b] transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleBulkDelete}
+                  disabled={bulkDeleting}
+                  className="flex-1 rounded-xl bg-red-600 py-3 text-sm font-bold text-white flex items-center justify-center gap-2 hover:bg-red-500 disabled:opacity-50 transition-colors"
+                >
+                  {bulkDeleting ? <><Loader2 className="h-4 w-4 animate-spin" /> Deleting...</> : "Delete All"}
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <MobileNav />
     </AuthGuard>
