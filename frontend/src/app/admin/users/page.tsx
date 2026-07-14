@@ -508,36 +508,84 @@ export default function AdminUsersPage() {
                             {isSelected ? <CheckSquare className="h-5 w-5 text-cyan-400" /> : <Square className="h-5 w-5 text-zinc-600" />}
                           </div>
                         )}
-                  </div>
-                </div>
-                {u.role === "student" && (
-                  <div className="mt-2 flex items-center gap-2 border-t border-[#1e233d] pt-2">
-                    <select
-                      value={parentSelections[u.id] ?? u.parent_id ?? ""}
-                      onChange={(e) => setParentSelections({ ...parentSelections, [u.id]: e.target.value })}
-                      className="flex-1 rounded-lg border border-[#2b3052] bg-[#0a0c14] px-2 py-1.5 text-xs text-white"
-                    >
-                      <option value="">No Parent Linked</option>
-                      {users.filter(p => p.role === "parent").map(p => (
-                        <option key={p.id} value={p.id}>
-                          {p.full_name} ({p.email})
-                        </option>
-                      ))}
-                    </select>
-                    <button
-                      onClick={() => {
-                        setParent(u.id, parentSelections[u.id] ?? u.parent_id ?? "");
-                      }}
-                      className="rounded-lg bg-cyan-600/20 text-cyan-300 hover:bg-cyan-600/40 px-3 py-1.5 text-xs font-bold transition-colors"
-                    >
-                      Save Parent
-                    </button>
-                  </div>
-                )}
-              </Card>
-            </motion.div>
-            );
-          })}
+                        {/* Profile Picture */}
+                        <div className="shrink-0 h-10 w-10 rounded-full overflow-hidden border border-[#2b3052] bg-[#16192b] flex items-center justify-center">
+                          {u.profile_picture_url ? (
+                            <Image src={u.profile_picture_url} alt={u.full_name} width={40} height={40} className="object-cover w-full h-full" />
+                          ) : (
+                            <User className="h-5 w-5 text-zinc-600" />
+                          )}
+                        </div>
+                        <div className="min-w-0">
+                          <h3 className="text-sm font-semibold text-white">{u.full_name}</h3>
+                          <p className="text-xs text-zinc-500">{u.email}</p>
+                          {u.specialization && <p className="text-[10px] text-purple-400 mt-0.5">{u.specialization}</p>}
+                          <div className="mt-1 flex flex-wrap gap-1.5">
+                            <span className="rounded-full bg-purple-500/20 px-1.5 py-0.5 text-[9px] font-bold uppercase text-purple-300">
+                              {u.role}
+                            </span>
+                            <span className={`rounded-full px-1.5 py-0.5 text-[9px] font-bold ${u.is_active ? "bg-emerald-500/20 text-emerald-400" : "bg-amber-500/20 text-amber-400"}`}>
+                              {u.is_active ? "Active" : "Pending / Inactive"}
+                            </span>
+                            {resetRequests.some((r) => r.user_id === u.id) && (
+                              <span className="rounded-full bg-amber-500/20 px-1.5 py-0.5 text-[9px] font-bold text-amber-400 flex items-center gap-0.5">
+                                <ShieldAlert className="h-2.5 w-2.5" /> Reset Requested
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                      {!selectMode && (
+                        <div className="flex shrink-0 flex-col gap-1.5">
+                          <button
+                            onClick={() => toggleActive(u.id, u.is_active)}
+                            className={`rounded-lg px-3 py-1 text-xs font-semibold ${u.is_active ? "bg-red-600/30 text-red-300" : "bg-emerald-600/30 text-emerald-300"}`}
+                          >
+                            {u.is_active ? "Deactivate" : "Activate"}
+                          </button>
+                          <button
+                            onClick={() => openResetModal(u)}
+                            className="rounded-lg bg-cyan-600/30 px-3 py-1 text-xs font-semibold text-cyan-300"
+                          >
+                            Reset Pwd
+                          </button>
+                          <button
+                            onClick={() => setDeleteModal({ id: u.id, name: u.full_name })}
+                            className="rounded-lg bg-red-900/30 px-3 py-1 text-xs font-semibold text-red-400"
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                    {u.role === "student" && (
+                      <div className="mt-2 flex items-center gap-2 border-t border-[#1e233d] pt-2">
+                        <select
+                          value={parentSelections[u.id] ?? u.parent_id ?? ""}
+                          onChange={(e) => setParentSelections({ ...parentSelections, [u.id]: e.target.value })}
+                          className="flex-1 rounded-lg border border-[#2b3052] bg-[#0a0c14] px-2 py-1.5 text-xs text-white"
+                        >
+                          <option value="">No Parent Linked</option>
+                          {users.filter(p => p.role === "parent").map(p => (
+                            <option key={p.id} value={p.id}>
+                              {p.full_name} ({p.email})
+                            </option>
+                          ))}
+                        </select>
+                        <button
+                          onClick={() => {
+                            setParent(u.id, parentSelections[u.id] ?? u.parent_id ?? "");
+                          }}
+                          className="rounded-lg bg-cyan-600/20 text-cyan-300 hover:bg-cyan-600/40 px-3 py-1.5 text-xs font-bold transition-colors"
+                        >
+                          Save Parent
+                        </button>
+                      </div>
+                    )}
+                  </Card>
+                </motion.div>
+              );
+            })}
           </AnimatePresence>
             {!error && displayed.length === 0 && (
               <p className="text-center text-sm text-zinc-500">No users found.</p>
