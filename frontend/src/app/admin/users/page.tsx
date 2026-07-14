@@ -327,20 +327,26 @@ export default function AdminUsersPage() {
               </div>
               {u.role === "student" && (
                 <div className="mt-2 flex items-center gap-2 border-t border-[#1e233d] pt-2">
-                  <input
-                    defaultValue={u.parent_id || ""}
-                    placeholder="Parent UUID to link"
+                  <select
                     id={`parent-${u.id}`}
-                    className="flex-1 rounded-lg border border-[#2b3052] bg-[#0a0c14] px-2 py-1 text-xs text-white placeholder-zinc-600"
-                  />
+                    defaultValue={u.parent_id || ""}
+                    className="flex-1 rounded-lg border border-[#2b3052] bg-[#0a0c14] px-2 py-1.5 text-xs text-white"
+                  >
+                    <option value="">No Parent Linked</option>
+                    {users.filter(p => p.role === "parent").map(p => (
+                      <option key={p.id} value={p.id}>
+                        {p.full_name} ({p.email})
+                      </option>
+                    ))}
+                  </select>
                   <button
                     onClick={() => {
-                      const input = document.getElementById(`parent-${u.id}`) as HTMLInputElement;
-                      setParent(u.id, input.value);
+                      const select = document.getElementById(`parent-${u.id}`) as HTMLSelectElement;
+                      setParent(u.id, select.value);
                     }}
-                    className="rounded-lg bg-cyan-600 px-3 py-1 text-xs font-bold text-white"
+                    className="rounded-lg bg-cyan-600/20 text-cyan-300 hover:bg-cyan-600/40 px-3 py-1.5 text-xs font-bold transition-colors"
                   >
-                    Link Parent
+                    Save Parent
                   </button>
                 </div>
               )}
