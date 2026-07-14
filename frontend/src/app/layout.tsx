@@ -14,10 +14,10 @@ export const metadata: Metadata = {
   manifest: "/manifest.json",
   icons: {
     icon: [
-      { url: "/favicon.svg", type: "image/svg+xml" },
+      { url: "/logo.png", type: "image/png", sizes: "any" },
     ],
     apple: "/logo.png",
-    shortcut: "/favicon.svg",
+    shortcut: "/logo.png",
   },
   appleWebApp: {
     capable: true,
@@ -42,6 +42,11 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={outfit.variable}>
+      <head>
+        <link rel="icon" href="/logo.png" type="image/png" />
+        <link rel="shortcut icon" href="/logo.png" type="image/png" />
+        <link rel="apple-touch-icon" href="/logo.png" />
+      </head>
       <body className="antialiased">{children}</body>
     </html>
   );
