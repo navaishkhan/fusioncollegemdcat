@@ -60,6 +60,9 @@ export default function ResultPage({
   const [reviewIndex, setReviewIndex] = useState(0);
   const [direction, setDirection] = useState(1);
   const [isScoreFlipped, setIsScoreFlipped] = useState(false);
+  const [reviewRequestOpen, setReviewRequestOpen] = useState(false);
+  const [reviewReason, setReviewReason] = useState("");
+  const [submittingReview, setSubmittingReview] = useState(false);
 
   useEffect(() => {
     apiFetch<ResultData>(`/api/tests/attempts/${attempt_id}/result`)
@@ -71,6 +74,23 @@ export default function ResultPage({
     if (index > reviewIndex) setDirection(1);
     else setDirection(-1);
     setReviewIndex(index);
+  };
+
+  const handleReviewRequest = async (questionId: string) => {
+    if (!reviewReason.trim()) return;
+    setSubmittingReview(true);
+    try {
+      await apiFetch(`/api/questions/${questionId}/review`, {
+        method: "POST",
+        body: JSON.stringify({ reason: reviewReason }),
+      });
+      setReviewRequestOpen(false);
+      setReviewReason("");
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : "Failed to submit review request");
+    } finally {
+      setSubmittingReview(false);
+    }
   };
 
   if (error) {
@@ -153,7 +173,7 @@ export default function ResultPage({
 
     return (
       <AuthGuard roles={["student", "parent"]}>
-        <div className="min-h-screen bg-[#080a14] bg-grid-glow bg-dot-pattern pb-32 safe-top safe-bottom md:pl-64">
+        <div className="min-h-screen bg-[#080a14] bg-grid-glow bg-dot-pattern pb-32 safe-top safe-bottom">
           <header className="sticky top-0 z-20 border-b border-[#1e223c] bg-[#080a14]/80 px-4 py-3 backdrop-blur-xl">
             <div className="mx-auto max-w-2xl flex items-center justify-between">
               <h1 className="text-sm font-black text-white uppercase tracking-widest">Question Review</h1>
@@ -262,49 +282,102 @@ export default function ResultPage({
             </div>
           </main>
 
-          <footer className="fixed bottom-0 left-0 right-0 z-30 border-t border-[#1e223c] bg-[#080a14]/90 px-4 py-4 backdrop-blur-xl safe-bottom md:pl-64">
-            <div className="mx-auto max-w-2xl flex items-center justify-between gap-3">
-              <motion.button
-                whileTap={{ scale: 0.97 }}
-                onClick={() => navigateTo(Math.max(0, reviewIndex - 1))}
-                disabled={reviewIndex === 0}
-                className="flex items-center gap-1.5 rounded-xl border border-[#1e223c] bg-[#0f1224]/60 px-4 py-3 text-xs font-bold uppercase tracking-wider text-slate-300 hover:bg-white/5 transition-all disabled:opacity-30 disabled:pointer-events-none cursor-pointer"
-              >
-                <ChevronLeft className="w-4 h-4" />
-                <span>Prev</span>
-              </motion.button>
-              
-              <div className="text-xs font-black uppercase tracking-widest text-slate-400">
-                {userCorrect ? (
-                  <span className="text-emerald-400 font-bold">Correct</span>
-                ) : item.is_correct === null ? (
-                  <span className="text-slate-500 font-bold">Skipped</span>
+          <footer className="fixed bottom-0 left-0 right-0 z-30 border-t border-[#1e223c] bg-[#080a14]/90 px-4 py-4 backdrop-blur-xl safe-bottom">
+            <div className="mx-auto max-w-2xl flex flex-col gap-3">
+              <div className="flex items-center justify-between gap-3">
+                <motion.button
+                  whileTap={{ scale: 0.97 }}
+                  onClick={() => navigateTo(Math.max(0, reviewIndex - 1))}
+                  disabled={reviewIndex === 0}
+                  className="flex items-center gap-1.5 rounded-xl border border-[#1e223c] bg-[#0f1224]/60 px-4 py-3 text-xs font-bold uppercase tracking-wider text-slate-300 hover:bg-white/5 transition-all disabled:opacity-30 disabled:pointer-events-none cursor-pointer"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                  <span>Prev</span>
+                </motion.button>
+                
+                <div className="text-xs font-black uppercase tracking-widest text-slate-400">
+                  {userCorrect ? (
+                    <span className="text-emerald-400 font-bold">Correct</span>
+                  ) : item.is_correct === null ? (
+                    <span className="text-slate-500 font-bold">Skipped</span>
+                  ) : (
+                    <span className="text-red-400 font-bold">Incorrect</span>
+                  )}
+                </div>
+
+                {isLast ? (
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.97 }}
+                    onClick={() => setShowReview(false)}
+                    className="rounded-xl bg-gradient-to-r from-cyan-500 to-violet-600 px-5 py-3 text-xs font-bold uppercase tracking-wider text-white shadow-lg cursor-pointer"
+                  >
+                    Summary
+                  </motion.button>
                 ) : (
-                  <span className="text-red-400 font-bold">Incorrect</span>
+                  <motion.button
+                    whileTap={{ scale: 0.97 }}
+                    onClick={() => navigateTo(reviewIndex + 1)}
+                    className="flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-cyan-500 to-violet-600 px-5 py-3 text-xs font-bold uppercase tracking-wider text-white shadow-lg cursor-pointer"
+                  >
+                    <span>Next</span>
+                    <ChevronRight className="w-4 h-4" />
+                  </motion.button>
                 )}
               </div>
-
-              {isLast ? (
-                <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.97 }}
-                  onClick={() => setShowReview(false)}
-                  className="rounded-xl bg-gradient-to-r from-cyan-500 to-violet-600 px-5 py-3 text-xs font-bold uppercase tracking-wider text-white shadow-lg cursor-pointer"
-                >
-                  Summary
-                </motion.button>
-              ) : (
-                <motion.button
-                  whileTap={{ scale: 0.97 }}
-                  onClick={() => navigateTo(reviewIndex + 1)}
-                  className="flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-cyan-500 to-violet-600 px-5 py-3 text-xs font-bold uppercase tracking-wider text-white shadow-lg cursor-pointer"
-                >
-                  <span>Next</span>
-                  <ChevronRight className="w-4 h-4" />
-                </motion.button>
-              )}
+              
+              <button
+                onClick={() => setReviewRequestOpen(true)}
+                className="w-full rounded-xl border border-amber-500/30 bg-amber-500/10 py-3 text-xs font-bold uppercase tracking-wider text-amber-400 hover:bg-amber-500/20 transition-colors cursor-pointer"
+              >
+                Request Review for This Question
+              </button>
             </div>
           </footer>
+
+          {/* Review Request Modal */}
+          <AnimatePresence>
+            {reviewRequestOpen && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm px-4"
+                onClick={() => setReviewRequestOpen(false)}
+              >
+                <motion.div
+                  initial={{ scale: 0.95, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  exit={{ scale: 0.95, opacity: 0 }}
+                  onClick={(e) => e.stopPropagation()}
+                  className="w-full max-w-md rounded-2xl border border-[#1e223c] bg-[#0d101d] p-6"
+                >
+                  <h3 className="text-sm font-bold text-white mb-4">Request Question Review</h3>
+                  <textarea
+                    value={reviewReason}
+                    onChange={(e) => setReviewReason(e.target.value)}
+                    placeholder="Explain why you believe this question is incorrect..."
+                    className="w-full h-32 rounded-xl border border-[#2b3052] bg-[#0a0c14] px-4 py-3 text-sm text-white placeholder-zinc-600 resize-none"
+                  />
+                  <div className="flex gap-3 mt-4">
+                    <button
+                      onClick={() => setReviewRequestOpen(false)}
+                      className="flex-1 rounded-xl border border-[#2b3052] bg-[#16192b] py-3 text-xs font-bold uppercase tracking-wider text-zinc-400 hover:bg-white/5 transition-colors cursor-pointer"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={() => handleReviewRequest(item.question_id)}
+                      disabled={submittingReview || !reviewReason.trim()}
+                      className="flex-1 rounded-xl bg-amber-600 py-3 text-xs font-bold uppercase tracking-wider text-white disabled:opacity-50 cursor-pointer"
+                    >
+                      {submittingReview ? "Submitting..." : "Submit Request"}
+                    </button>
+                  </div>
+                </motion.div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </AuthGuard>
     );
@@ -313,7 +386,7 @@ export default function ResultPage({
   // Summary view
   return (
     <AuthGuard roles={["student", "parent"]}>
-      <div className="min-h-screen bg-[#080a14] bg-grid-glow bg-dot-pattern pb-28 safe-top safe-bottom md:pl-64">
+      <div className="min-h-screen bg-[#080a14] bg-grid-glow bg-dot-pattern pb-28 safe-top safe-bottom">
         <header className="sticky top-0 z-20 border-b border-[#1e223c] bg-[#080a14]/80 px-4 py-3 backdrop-blur-xl">
           <div className="mx-auto max-w-2xl flex items-center justify-between">
             <h1 className="text-lg font-black text-white tracking-tight uppercase">Result Report</h1>
