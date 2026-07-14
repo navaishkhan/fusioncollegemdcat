@@ -12,13 +12,20 @@ export const metadata: Metadata = {
   title: "Fusion MDCAT",
   description: "MDCAT test platform — Fusion College Narowal",
   manifest: "/manifest.json",
-  icons: { icon: "/favicon.svg" },
+  icons: {
+    icon: [
+      { url: "/favicon.svg", type: "image/svg+xml" },
+    ],
+    apple: "/logo.png",
+    shortcut: "/favicon.svg",
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
     title: "Fusion MDCAT",
   },
 };
+
 
 export const viewport: Viewport = {
   width: "device-width",
