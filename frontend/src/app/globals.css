@@ -51,12 +51,22 @@ body {
   background: var(--accent-purple);
 }
 
-/* Safe Area Paddings */
+.safe-top {
+  padding-top: env(safe-area-inset-top, 0px);
+}
 .safe-bottom {
   padding-bottom: env(safe-area-inset-bottom, 0px);
 }
-.safe-top {
-  padding-top: env(safe-area-inset-top, 0px);
+
+@media (min-width: 768px) {
+  body {
+    padding-left: var(--sidebar-width, 68px) !important;
+    transition: padding-left 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+  .fixed-sidebar-offset {
+    left: var(--sidebar-width, 68px) !important;
+    transition: left 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
 }
 
 /* Glassmorphism panel */

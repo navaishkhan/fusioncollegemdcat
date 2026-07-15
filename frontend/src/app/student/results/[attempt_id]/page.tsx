@@ -186,7 +186,7 @@ export default function ResultPage({
 
     return (
       <AuthGuard roles={["student", "parent"]}>
-        <div className="min-h-screen bg-[#080a14] bg-grid-glow bg-dot-pattern pb-32 text-slate-100 md:pl-[68px]">
+        <div className="min-h-screen bg-[#080a14] bg-grid-glow bg-dot-pattern pb-32 text-slate-100">
           {reviewSuccess && (
             <div className="fixed top-4 left-4 right-4 z-50 mx-auto max-w-md rounded-xl border border-emerald-500/30 bg-emerald-950/90 px-4 py-3 text-xs font-semibold text-emerald-400 shadow-lg text-center">
               {reviewSuccess}
@@ -383,7 +383,7 @@ export default function ResultPage({
           </main>
 
           {/* Bottom Control Bar */}
-          <footer className="fixed bottom-0 left-0 md:left-[68px] right-0 z-30 border-t border-[#1e223c] bg-[#080a14]/90 px-6 py-4.5 backdrop-blur-xl safe-bottom">
+          <footer className="fixed bottom-0 left-0 fixed-sidebar-offset right-0 z-30 border-t border-[#1e223c] bg-[#080a14]/90 px-6 py-4.5 backdrop-blur-xl safe-bottom">
             <div className="mx-auto max-w-7xl flex items-center justify-between gap-4">
               <motion.button
                 whileTap={{ scale: 0.97 }}

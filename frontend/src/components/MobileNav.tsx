@@ -180,6 +180,11 @@ export default function MobileNav() {
   const secondaryItems = SECONDARY_NAV[user.role] || [];
   const isOpen = pinned || hovered; // sidebar shows full labels when pinned OR hovered
 
+  useEffect(() => {
+    const width = isOpen ? `${FULL_W}px` : `${RAIL_W}px`;
+    document.documentElement.style.setProperty("--sidebar-width", width);
+  }, [isOpen]);
+
   const handleLogout = () => {
     clearAuth();
     window.location.href = "/login";
