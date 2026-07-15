@@ -1,12 +1,25 @@
 "use client";
 
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { motion } from "framer-motion";
 import { GraduationCap, ArrowRight, ShieldCheck } from "lucide-react";
 import { FusionCanvas } from "@/components/FusionLogo3D";
+import { getStoredUser, dashboardPath } from "@/lib/api";
 
 export default function HomePage() {
+  const router = useRouter();
+
+  // Auto-redirect already-authenticated users to their dashboard
+  useEffect(() => {
+    const user = getStoredUser();
+    if (user) {
+      router.replace(dashboardPath(user.role));
+    }
+  }, [router]);
+
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {

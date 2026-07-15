@@ -18,7 +18,7 @@ import {
 } from "lucide-react";
 import MobileNav, { AuthGuard } from "@/components/MobileNav";
 import { Card, PageShell, StatPill } from "@/components/Brand";
-import { apiFetch, getStoredUser } from "@/lib/api";
+import { apiFetch, getStoredUser, clearAuth } from "@/lib/api";
 
 interface AdminStats {
   total_users: number;
@@ -208,6 +208,14 @@ export default function AdminDashboard() {
                 </div>
               </Card>
             </div>
+
+            {/* Sign out */}
+            <button
+              onClick={() => { clearAuth(); window.location.href = "/login"; }}
+              className="w-full rounded-full border border-red-500/10 bg-red-500/5 py-3 text-sm font-bold text-red-400/80 hover:bg-red-500/10 hover:text-red-400 transition-all cursor-pointer"
+            >
+              Sign Out
+            </button>
           </div>
 
           {/* ── Right Column: Live Neon Stats ── */}
