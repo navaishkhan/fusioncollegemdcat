@@ -269,8 +269,8 @@ export default function MobileNav() {
       </AnimatePresence>
 
       {/* Desktop Left Sidebar */}
-      <aside className="hidden md:flex flex-col fixed left-4 top-4 bottom-4 w-64 rounded-3xl glass-panel glossy-border bg-[rgba(12,14,26,0.6)] backdrop-blur-3xl shadow-2xl py-6 px-4 z-30 justify-between overflow-y-auto scrollbar-none">
-        <div className="space-y-6">
+      <aside className="hidden md:flex flex-col fixed left-4 top-4 bottom-4 w-64 rounded-3xl glass-panel glossy-border bg-[rgba(12,14,26,0.6)] backdrop-blur-3xl shadow-2xl py-6 px-4 z-30 justify-between">
+        <div className="flex flex-col flex-1 overflow-y-auto scrollbar-none space-y-6 pb-4">
           <Link href="/" className="px-3 py-2 flex items-center gap-3 hover:opacity-85 transition-opacity group">
             <Image
               src="/logo.png"
@@ -331,13 +331,15 @@ export default function MobileNav() {
           </div>
         </div>
 
-        <button
-          onClick={handleLogout}
-          className="flex items-center justify-center gap-2 px-4 py-3.5 rounded-2xl text-sm font-bold text-rose-400 bg-rose-500/10 hover:bg-rose-500/20 transition-colors mt-auto cursor-pointer border border-rose-500/10 hover:border-rose-500/30"
-        >
-          <LogOut className="w-4 h-4" />
-          <span>Sign Out</span>
-        </button>
+        <div className="pt-4 mt-auto border-t border-white/5 shrink-0">
+          <button
+            onClick={handleLogout}
+            className="w-full flex items-center justify-center gap-2 px-4 py-3.5 rounded-2xl text-sm font-bold text-rose-400 bg-rose-500/10 hover:bg-rose-500/20 transition-colors cursor-pointer border border-rose-500/10 hover:border-rose-500/30"
+          >
+            <LogOut className="w-4 h-4" />
+            <span>Sign Out</span>
+          </button>
+        </div>
       </aside>
     </>
   );
