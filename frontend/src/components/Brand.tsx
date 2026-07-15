@@ -45,7 +45,7 @@ export function PageShell({
   title?: string;
 }) {
   return (
-    <div className="min-h-screen bg-[#080911] safe-top safe-bottom md:pl-[68px]">
+    <div className="min-h-screen bg-[#080911] safe-top safe-bottom">
       <header className="sticky top-0 z-20 border-b border-[rgba(255,255,255,0.08)] bg-[#030409]/60 px-4 py-3 backdrop-blur-3xl shadow-sm">
         <div className="mx-auto max-w-lg md:max-w-4xl flex items-center justify-between">
           <BrandHeader />

@@ -47,7 +47,7 @@ export default function RootLayout({
         <link rel="shortcut icon" href="/logo.png" type="image/png" />
         <link rel="apple-touch-icon" href="/logo.png" />
       </head>
-      <body className="antialiased">{children}</body>
+      <body className="antialiased md:pl-[68px]">{children}</body>
     </html>
   );
 }

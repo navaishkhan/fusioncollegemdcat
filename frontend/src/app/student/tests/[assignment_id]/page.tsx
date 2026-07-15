@@ -635,7 +635,7 @@ export default function ExamPage({
         </div>
 
         {/* ── Sticky Bottom Bar ────────────────────────────────────────────── */}
-        <footer className="fixed bottom-0 left-0 right-0 z-30 border-t border-[#1e223c] bg-[#0c0e1a]/95 px-4 py-4.5 backdrop-blur-2xl safe-bottom">
+        <footer className="fixed bottom-0 left-0 md:left-[68px] right-0 z-30 border-t border-[#1e223c] bg-[#0c0e1a]/95 px-4 py-4.5 backdrop-blur-2xl safe-bottom">
           <div className="mx-auto max-w-7xl flex items-center justify-between gap-3">
             <div className="flex items-center gap-2">
               {/* Prev Button */}
