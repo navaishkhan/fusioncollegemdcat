@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { Play, Eye, BookOpen, Clock, AlertCircle, ChevronRight } from "lucide-react";
+import { Play, Eye, BookOpen, Clock, AlertCircle, ChevronRight, Search } from "lucide-react";
 import MobileNav, { AuthGuard } from "@/components/MobileNav";
 import { Card, PageShell, StatPill } from "@/components/Brand";
 import { apiFetch, getStoredUser } from "@/lib/api";
@@ -32,6 +32,7 @@ export default function StudentDashboard() {
   const [totalTests, setTotalTests] = useState<number>(0);
   const [recentAttempts, setRecentAttempts] = useState<HistoryItem[]>([]);
   const [openAssignments, setOpenAssignments] = useState<Assignment[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -49,9 +50,9 @@ export default function StudentDashboard() {
             submitted.length;
           setAvgScore(avg);
         }
-        setRecentAttempts(submitted.slice(0, 3));
+        setRecentAttempts(submitted);
         setOpenAssignments(
-          assignments.filter((a) => a.status === "open").slice(0, 3),
+          assignments.filter((a) => a.status === "open"),
         );
       })
       .catch((e) => setError(e.message));
@@ -71,6 +72,14 @@ export default function StudentDashboard() {
     hidden: { opacity: 0, y: 15 },
     show: { opacity: 1, y: 0, transition: { type: "spring" as const, stiffness: 100, damping: 15 } },
   };
+
+  const filteredAssignments = openAssignments.filter((a) =>
+    a.test_title.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const filteredAttempts = recentAttempts.filter((a) =>
+    a.test_title.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   return (
     <AuthGuard roles={["student"]}>
@@ -112,6 +121,24 @@ export default function StudentDashboard() {
               </motion.div>
             )}
 
+            {/* Search Input Option */}
+            {(openAssignments.length > 0 || recentAttempts.length > 0) && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="relative"
+              >
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                <input
+                  type="text"
+                  placeholder="Search assignments or recent tests..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full bg-[#0c0e1a]/90 border border-white/5 rounded-2xl pl-11 pr-4 py-3 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500/40 focus:bg-white/5 transition-all shadow-[inset_0_0_12px_rgba(255,255,255,0.01)]"
+                />
+              </motion.div>
+            )}
+
             <motion.div
               variants={listContainerVariants}
               initial="hidden"
@@ -125,31 +152,35 @@ export default function StudentDashboard() {
                     <Clock className="w-3.5 h-3.5 text-emerald-400" />
                     <span>Active Assignments</span>
                   </h2>
-                  <div className="space-y-2.5">
-                    {openAssignments.map((a) => (
-                      <Card key={a.id} onClick={() => router.push(`/student/tests/${a.id}`)}>
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-start gap-3">
-                            <div className="rounded-xl bg-emerald-500/10 p-2.5 mt-0.5 border border-emerald-500/20">
-                              <Play className="w-4 h-4 text-emerald-400" />
+                  {filteredAssignments.length > 0 ? (
+                    <div className="max-h-[300px] overflow-y-auto pr-1.5 scrollbar-thin scrollbar-thumb-white/10 space-y-2.5">
+                      {filteredAssignments.map((a) => (
+                        <Card key={a.id} onClick={() => router.push(`/student/tests/${a.id}`)}>
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-start gap-3">
+                              <div className="rounded-xl bg-emerald-500/10 p-2.5 mt-0.5 border border-emerald-500/20">
+                                <Play className="w-4 h-4 text-emerald-400" />
+                              </div>
+                              <div>
+                                <h3 className="text-sm font-bold text-white leading-tight">
+                                  {a.test_title}
+                                </h3>
+                                <p className="text-[11px] text-slate-500 font-semibold mt-1">
+                                  Due: {new Date(a.end_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+                                </p>
+                              </div>
                             </div>
-                            <div>
-                              <h3 className="text-sm font-bold text-white leading-tight">
-                                {a.test_title}
-                              </h3>
-                              <p className="text-[11px] text-slate-500 font-semibold mt-1">
-                                Due: {new Date(a.end_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
-                              </p>
-                            </div>
+                            <button className="flex items-center gap-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 px-5 py-2 text-xs font-bold text-emerald-400 hover:bg-emerald-500 hover:text-white transition-all duration-300 shadow-[0_0_15px_rgba(16,185,129,0.15)] hover:shadow-[0_0_20px_rgba(16,185,129,0.4)] cursor-pointer relative overflow-hidden group">
+                              <span className="relative z-10">Begin</span>
+                              <div className="absolute inset-0 bg-gradient-to-r from-emerald-400 to-teal-400 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                            </button>
                           </div>
-                          <button className="flex items-center gap-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 px-5 py-2 text-xs font-bold text-emerald-400 hover:bg-emerald-500 hover:text-white transition-all duration-300 shadow-[0_0_15px_rgba(16,185,129,0.15)] hover:shadow-[0_0_20px_rgba(16,185,129,0.4)] cursor-pointer relative overflow-hidden group">
-                            <span className="relative z-10">Begin</span>
-                            <div className="absolute inset-0 bg-gradient-to-r from-emerald-400 to-teal-400 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                          </button>
-                        </div>
-                      </Card>
-                    ))}
-                  </div>
+                        </Card>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-xs text-slate-500 italic px-1 py-1">No matching active assignments found.</p>
+                  )}
                 </motion.div>
               )}
 
@@ -160,37 +191,41 @@ export default function StudentDashboard() {
                     <BookOpen className="w-3.5 h-3.5 text-cyan-400" />
                     <span>Recent Performances</span>
                   </h2>
-                  <div className="space-y-2.5">
-                    {recentAttempts.map((a) => (
-                      <Card key={a.attempt_id} onClick={() => router.push(`/student/results/${a.attempt_id}`)}>
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-start gap-3">
-                            <div className="rounded-xl bg-cyan-500/10 p-2.5 mt-0.5 border border-cyan-500/20">
-                              <Eye className="w-4 h-4 text-cyan-400" />
+                  {filteredAttempts.length > 0 ? (
+                    <div className="max-h-[300px] overflow-y-auto pr-1.5 scrollbar-thin scrollbar-thumb-white/10 space-y-2.5">
+                      {filteredAttempts.map((a) => (
+                        <Card key={a.attempt_id} onClick={() => router.push(`/student/results/${a.attempt_id}`)}>
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-start gap-3">
+                              <div className="rounded-xl bg-cyan-500/10 p-2.5 mt-0.5 border border-cyan-500/20">
+                                <Eye className="w-4 h-4 text-cyan-400" />
+                              </div>
+                              <div>
+                                <h3 className="text-sm font-bold text-white leading-tight">
+                                  {a.test_title}
+                                </h3>
+                                <p className="text-[11px] text-slate-500 font-semibold mt-1">
+                                  Score: <span className="text-cyan-400 font-bold">{a.total_score?.toFixed(1)} pts</span>
+                                  {a.rank_in_batch != null && (
+                                    <>
+                                      <span className="mx-1.5">·</span>
+                                      Rank: <span className="text-amber-400 font-bold">#{a.rank_in_batch}</span>
+                                    </>
+                                  )}
+                                </p>
+                              </div>
                             </div>
-                            <div>
-                              <h3 className="text-sm font-bold text-white leading-tight">
-                                {a.test_title}
-                              </h3>
-                              <p className="text-[11px] text-slate-500 font-semibold mt-1">
-                                Score: <span className="text-cyan-400 font-bold">{a.total_score?.toFixed(1)} pts</span>
-                                {a.rank_in_batch != null && (
-                                  <>
-                                    <span className="mx-1.5">·</span>
-                                    Rank: <span className="text-amber-400 font-bold">#{a.rank_in_batch}</span>
-                                  </>
-                                )}
-                              </p>
-                            </div>
+                            <button className="flex items-center gap-1 rounded-full bg-cyan-500/10 border border-cyan-500/30 px-5 py-2 text-xs font-bold text-cyan-400 hover:bg-cyan-500 hover:text-white transition-all duration-300 shadow-[0_0_15px_rgba(6,182,212,0.15)] hover:shadow-[0_0_20px_rgba(6,182,212,0.4)] cursor-pointer relative overflow-hidden group">
+                              <span className="relative z-10">View</span>
+                              <div className="absolute inset-0 bg-gradient-to-r from-cyan-400 to-blue-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                            </button>
                           </div>
-                          <button className="flex items-center gap-1 rounded-full bg-cyan-500/10 border border-cyan-500/30 px-5 py-2 text-xs font-bold text-cyan-400 hover:bg-cyan-500 hover:text-white transition-all duration-300 shadow-[0_0_15px_rgba(6,182,212,0.15)] hover:shadow-[0_0_20px_rgba(6,182,212,0.4)] cursor-pointer relative overflow-hidden group">
-                            <span className="relative z-10">View</span>
-                            <div className="absolute inset-0 bg-gradient-to-r from-cyan-400 to-blue-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                          </button>
-                        </div>
-                      </Card>
-                    ))}
-                  </div>
+                        </Card>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-xs text-slate-500 italic px-1 py-1">No matching performances found.</p>
+                  )}
                 </motion.div>
               )}
 
@@ -352,17 +387,6 @@ export default function StudentDashboard() {
                   <div className="text-lg font-black text-white mt-0.5">{totalTests}</div>
                 </div>
               </div>
-            </Card>
-
-            {/* Support Widget */}
-            <Card className="border border-white/5 bg-white/3 p-5 shadow-xl relative overflow-hidden group">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-purple-600/10 to-cyan-500/10 rounded-full blur-2xl pointer-events-none group-hover:scale-150 transition-transform duration-500" />
-              <h4 className="text-xs font-black text-white uppercase tracking-wider mb-2">Need Guidance?</h4>
-              <p className="text-xs text-slate-400 leading-relaxed mb-4">Request a consultation with your tutor to review question trends and batches.</p>
-              <button onClick={() => router.push("/profile")} className="text-xs font-bold text-cyan-400 hover:text-cyan-300 transition-colors flex items-center gap-1.5 cursor-pointer">
-                <span>View My Profile</span>
-                <ChevronRight className="w-3.5 h-3.5" />
-              </button>
             </Card>
           </div>
 
