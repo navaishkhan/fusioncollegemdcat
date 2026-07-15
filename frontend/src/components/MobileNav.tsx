@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
@@ -22,9 +22,14 @@ import {
   ClipboardCheck,
   MessageSquare,
   ChevronRight,
+  PanelLeftClose,
+  PanelLeftOpen,
 } from "lucide-react";
 import { dashboardPath, getStoredUser, clearAuth, apiFetch } from "@/lib/api";
 
+/* ────────────────────────────────────────────────────────── */
+/* Icon map                                                    */
+/* ────────────────────────────────────────────────────────── */
 const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
   Home: Home,
   Users: Users,
@@ -39,6 +44,9 @@ const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
   Progress: TrendingUp,
 };
 
+/* ────────────────────────────────────────────────────────── */
+/* Nav definitions                                            */
+/* ────────────────────────────────────────────────────────── */
 const NAV: Record<string, { href: string; label: string }[]> = {
   admin: [
     { href: "/admin", label: "Home" },
@@ -72,7 +80,7 @@ const NAV: Record<string, { href: string; label: string }[]> = {
   ],
 };
 
-// Primary nav shown in the bottom bar (most important 3 items)
+/* Primary nav shown in mobile bottom bar */
 const PRIMARY_NAV: Record<string, { href: string; label: string }[]> = {
   admin: [
     { href: "/admin", label: "Home" },
@@ -95,7 +103,7 @@ const PRIMARY_NAV: Record<string, { href: string; label: string }[]> = {
   ],
 };
 
-// Secondary nav shown in the "More" drawer
+/* Secondary nav in mobile "More" drawer */
 const SECONDARY_NAV: Record<string, { href: string; label: string }[]> = {
   admin: [
     { href: "/tutor/questions", label: "Bank" },
@@ -110,20 +118,42 @@ const SECONDARY_NAV: Record<string, { href: string; label: string }[]> = {
     { href: "/tutor/analytics", label: "Analytics" },
     { href: "/profile", label: "Profile" },
   ],
-  student: [
-    { href: "/profile", label: "Profile" },
-  ],
-  parent: [
-    { href: "/profile", label: "Profile" },
-  ],
+  student: [{ href: "/profile", label: "Profile" }],
+  parent: [{ href: "/profile", label: "Profile" }],
 };
 
+/* ────────────────────────────────────────────────────────── */
+/* Constants                                                   */
+/* ────────────────────────────────────────────────────────── */
+const RAIL_W = 68;   // collapsed width in px
+const FULL_W = 256;  // expanded width in px
+
+/* ────────────────────────────────────────────────────────── */
+/* Main component                                              */
+/* ────────────────────────────────────────────────────────── */
 export default function MobileNav() {
   const router = useRouter();
-  const pathname = usePathname(); // ✅ reactive — updates on navigation
+  const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
   const [user, setUser] = useState<any>({ role: "student" });
-  const [stats, setStats] = useState<{ pending_question_reviews?: number; pending_manual_grading?: number } | null>(null);
+  const [stats, setStats] = useState<{
+    pending_question_reviews?: number;
+    pending_manual_grading?: number;
+  } | null>(null);
+
+  // Sidebar open/closed state — persisted in localStorage
+  const [expanded, setExpanded] = useState(false);
+  const [hovered, setHovered] = useState(false);
+  const [pinned, setPinned] = useState(false);
+
+  // Load pin preference from localStorage
+  useEffect(() => {
+    const saved = localStorage.getItem("sidebar-pinned");
+    if (saved === "true") {
+      setPinned(true);
+      setExpanded(true);
+    }
+  }, []);
 
   useEffect(() => {
     const u = getStoredUser();
@@ -137,7 +167,7 @@ export default function MobileNav() {
     }
   }, []);
 
-  // Close drawer when route changes
+  // Close mobile drawer when route changes
   useEffect(() => {
     setMenuOpen(false);
   }, [pathname]);
@@ -148,28 +178,44 @@ export default function MobileNav() {
   const allItems = NAV[user.role] || [];
   const primaryItems = PRIMARY_NAV[user.role] || [];
   const secondaryItems = SECONDARY_NAV[user.role] || [];
+  const isOpen = pinned || hovered; // sidebar shows full labels when pinned OR hovered
 
   const handleLogout = () => {
     clearAuth();
     window.location.href = "/login";
   };
 
+  const togglePin = () => {
+    const next = !pinned;
+    setPinned(next);
+    setExpanded(next);
+    localStorage.setItem("sidebar-pinned", String(next));
+  };
+
   const getBadge = (label: string) => {
-    if (label === "Reviews" && stats?.pending_question_reviews) return stats.pending_question_reviews;
-    if (label === "Grading" && stats?.pending_manual_grading) return stats.pending_manual_grading;
+    if (label === "Reviews" && stats?.pending_question_reviews)
+      return stats.pending_question_reviews;
+    if (label === "Grading" && stats?.pending_manual_grading)
+      return stats.pending_manual_grading;
     return null;
   };
 
+  const isActive = (href: string) =>
+    pathname === href ||
+    (href !== "/" && href.length > 1 && pathname?.startsWith(href + "/"));
+
   return (
     <>
-      {/* ── Mobile Floating Bottom Nav ── */}
+      {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
+      {/* MOBILE: Floating bottom bar                            */}
+      {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
       <nav
         className="fixed bottom-4 left-3 right-3 z-35 md:hidden glass-panel border border-white/8 rounded-2xl shadow-2xl safe-bottom"
         style={{ backdropFilter: "blur(20px)" }}
       >
         <div className="flex items-center justify-around">
           {primaryItems.map((item) => {
-            const active = pathname === item.href || (item.href !== "/" && pathname?.startsWith(item.href + "/"));
+            const active = isActive(item.href);
             const Icon = ICON_MAP[item.label] || BookOpen;
             const badge = getBadge(item.label);
             return (
@@ -200,7 +246,7 @@ export default function MobileNav() {
             );
           })}
 
-          {/* More Button */}
+          {/* More button */}
           <button
             onClick={() => setMenuOpen(true)}
             aria-label="Open menu"
@@ -212,11 +258,12 @@ export default function MobileNav() {
         </div>
       </nav>
 
-      {/* ── Mobile Drawer ── */}
+      {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
+      {/* MOBILE: Slide-up drawer                                */}
+      {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
       <AnimatePresence>
         {menuOpen && (
           <>
-            {/* Backdrop */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -224,8 +271,6 @@ export default function MobileNav() {
               onClick={() => setMenuOpen(false)}
               className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 md:hidden"
             />
-
-            {/* Drawer Panel */}
             <motion.div
               initial={{ y: "100%" }}
               animate={{ y: 0 }}
@@ -233,13 +278,10 @@ export default function MobileNav() {
               transition={{ type: "spring", damping: 28, stiffness: 220 }}
               className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-[#0c0e1a]/96 backdrop-blur-2xl border-t border-white/8 rounded-t-3xl shadow-2xl safe-bottom"
             >
-              {/* Handle bar */}
               <div className="flex justify-center pt-3 pb-1">
                 <div className="w-10 h-1 rounded-full bg-white/15" />
               </div>
-
               <div className="px-5 pb-6 max-h-[75vh] overflow-y-auto">
-                {/* Header */}
                 <div className="flex items-center justify-between py-4">
                   <div>
                     <h3 className="text-sm font-black text-white uppercase tracking-wider">Fusion MDCAT</h3>
@@ -253,11 +295,9 @@ export default function MobileNav() {
                     <X className="w-4 h-4" />
                   </button>
                 </div>
-
-                {/* Secondary Nav Grid */}
                 <div className="grid grid-cols-2 gap-2.5 mb-5">
                   {secondaryItems.map((item) => {
-                    const active = pathname === item.href;
+                    const active = isActive(item.href);
                     const Icon = ICON_MAP[item.label] || BookOpen;
                     const badge = getBadge(item.label);
                     return (
@@ -267,7 +307,7 @@ export default function MobileNav() {
                         className={`relative flex flex-col items-center justify-center p-4 rounded-2xl border transition-all duration-200 min-h-[80px] touch-manipulation ${
                           active
                             ? "bg-[#7c3aed]/10 border-[#7c3aed]/30 text-cyan-400"
-                            : "bg-white/3 border-white/8 text-slate-400 hover:text-white hover:border-white/15 hover:bg-white/6"
+                            : "bg-white/3 border-white/8 text-slate-400 hover:text-white hover:border-white/15"
                         }`}
                       >
                         <div className="relative">
@@ -283,11 +323,9 @@ export default function MobileNav() {
                     );
                   })}
                 </div>
-
-                {/* Sign Out */}
                 <button
                   onClick={handleLogout}
-                  className="w-full flex items-center justify-center gap-2.5 py-4 rounded-2xl bg-rose-600/10 border border-rose-500/20 text-rose-400 hover:bg-rose-600/20 hover:border-rose-500/35 text-sm font-bold transition-all touch-manipulation min-h-[52px]"
+                  className="w-full flex items-center justify-center gap-2.5 py-4 rounded-2xl bg-rose-600/10 border border-rose-500/20 text-rose-400 hover:bg-rose-600/20 text-sm font-bold transition-all touch-manipulation min-h-[52px]"
                 >
                   <LogOut className="w-4 h-4" />
                   <span>Sign Out</span>
@@ -298,100 +336,196 @@ export default function MobileNav() {
         )}
       </AnimatePresence>
 
-      {/* ── Desktop Left Sidebar ── */}
-      <aside className="hidden md:flex flex-col fixed left-4 top-4 bottom-4 w-64 rounded-3xl glass-panel glossy-border bg-[rgba(12,14,26,0.65)] backdrop-blur-3xl shadow-2xl py-6 px-4 z-30 justify-between">
-        {/* Logo */}
-        <div className="flex flex-col flex-1 overflow-y-auto scrollbar-none space-y-6 pb-4">
-          <Link
-            href="/"
-            className="px-3 py-2 flex items-center gap-3 hover:opacity-85 transition-opacity group rounded-2xl hover:bg-white/3"
-          >
-            <Image
-              src="/logo.png"
-              alt="Fusion College Logo"
-              width={40}
-              height={40}
-              className="rounded-full border border-white/10 bg-white object-contain shadow-md transition-transform duration-300 group-hover:rotate-12"
-              priority
-            />
-            <div>
-              <h2 className="text-sm font-black tracking-widest text-white uppercase">FUSION MDCAT</h2>
-              <div className="text-[10px] text-slate-500 font-bold uppercase tracking-widest capitalize">
-                {user.role} Portal
+      {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
+      {/* DESKTOP: Collapsible rail sidebar                      */}
+      {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
+      <motion.aside
+        initial={false}
+        animate={{ width: isOpen ? FULL_W : RAIL_W }}
+        transition={{ type: "spring", stiffness: 320, damping: 32, mass: 0.8 }}
+        onHoverStart={() => setHovered(true)}
+        onHoverEnd={() => setHovered(false)}
+        className="hidden md:flex flex-col fixed left-0 top-0 bottom-0 z-30 overflow-hidden
+                   bg-[#0b0d1a]/90 backdrop-blur-2xl
+                   border-r border-white/6
+                   shadow-[4px_0_24px_rgba(0,0,0,0.4)]
+                   justify-between py-4"
+        style={{ minWidth: RAIL_W }}
+      >
+        {/* ── Logo / Brand ── */}
+        <div className="flex flex-col flex-1 overflow-y-auto overflow-x-hidden scrollbar-none">
+          {/* Top: logo + pin toggle */}
+          <div className="flex items-center px-3 mb-6 gap-2 min-h-[52px]">
+            <Link
+              href="/"
+              className="flex items-center gap-3 shrink-0 group"
+              title="Fusion MDCAT"
+            >
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white/8 border border-white/10 overflow-hidden">
+                <Image
+                  src="/logo.png"
+                  alt="Fusion College Logo"
+                  width={32}
+                  height={32}
+                  className="object-contain transition-transform duration-300 group-hover:scale-110"
+                  priority
+                />
               </div>
-            </div>
-          </Link>
+              <AnimatePresence>
+                {isOpen && (
+                  <motion.div
+                    initial={{ opacity: 0, x: -8 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -8 }}
+                    transition={{ duration: 0.18, ease: "easeOut" }}
+                    className="overflow-hidden whitespace-nowrap"
+                  >
+                    <div className="text-[13px] font-black tracking-widest text-white uppercase leading-none">
+                      FUSION
+                    </div>
+                    <div className="text-[9px] text-slate-500 font-bold uppercase tracking-widest capitalize leading-none mt-0.5">
+                      {user.role} Portal
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </Link>
 
-          {/* Nav Items */}
-          <div className="space-y-1">
+            {/* Pin toggle — only visible when expanded */}
+            <AnimatePresence>
+              {isOpen && (
+                <motion.button
+                  initial={{ opacity: 0, scale: 0.7 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.7 }}
+                  transition={{ duration: 0.15 }}
+                  onClick={togglePin}
+                  title={pinned ? "Unpin sidebar" : "Pin sidebar open"}
+                  className="ml-auto shrink-0 flex items-center justify-center w-7 h-7 rounded-lg text-slate-500 hover:text-white hover:bg-white/8 transition-all"
+                >
+                  {pinned ? (
+                    <PanelLeftClose className="w-3.5 h-3.5" />
+                  ) : (
+                    <PanelLeftOpen className="w-3.5 h-3.5" />
+                  )}
+                </motion.button>
+              )}
+            </AnimatePresence>
+          </div>
+
+          {/* ── Nav Items ── */}
+          <div className="space-y-0.5 px-2">
             {allItems.map((item) => {
-              const active =
-                pathname === item.href ||
-                (item.href !== "/" &&
-                  item.href.length > 1 &&
-                  pathname?.startsWith(item.href + "/"));
+              const active = isActive(item.href);
               const Icon = ICON_MAP[item.label] || BookOpen;
               const badge = getBadge(item.label);
               return (
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`relative flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-semibold transition-all duration-200 group min-h-[48px] touch-manipulation ${
+                  title={!isOpen ? item.label : undefined}
+                  className={`relative flex items-center gap-3 px-2.5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-150 group min-h-[44px] touch-manipulation overflow-hidden ${
                     active ? "text-white" : "text-slate-400 hover:text-white"
                   }`}
                 >
+                  {/* Active background */}
                   {active && (
                     <motion.div
                       layoutId="active-pill-desktop"
-                      className="absolute inset-0 bg-gradient-to-r from-cyan-500/15 to-purple-500/15 rounded-2xl border border-cyan-500/25"
+                      className="absolute inset-0 bg-gradient-to-r from-cyan-500/12 to-purple-500/12 rounded-xl border border-cyan-500/20"
                       transition={{ type: "spring", stiffness: 380, damping: 30 }}
                     />
                   )}
+                  {/* Hover background */}
                   {!active && (
-                    <div className="absolute inset-0 bg-white/0 rounded-2xl transition-all duration-200 group-hover:bg-white/4" />
+                    <div className="absolute inset-0 bg-white/0 rounded-xl transition-all duration-150 group-hover:bg-white/5" />
                   )}
+
+                  {/* Icon container */}
                   <div
-                    className={`relative z-10 flex h-8 w-8 shrink-0 items-center justify-center rounded-xl transition-all duration-200 ${
+                    className={`relative z-10 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg transition-all duration-150 ${
                       active
-                        ? "bg-cyan-500/20 text-cyan-400"
-                        : "bg-white/5 text-slate-400 group-hover:bg-white/8 group-hover:text-cyan-300"
+                        ? "bg-cyan-500/18 text-cyan-400"
+                        : "text-slate-400 group-hover:text-cyan-300 group-hover:bg-white/6"
                     }`}
                   >
                     <Icon className="w-4 h-4" />
+                    {/* Badge on icon when collapsed */}
+                    {!isOpen && badge ? (
+                      <span className="absolute -top-1 -right-1 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-rose-500 text-[7px] font-bold text-white">
+                        {badge > 9 ? "9+" : badge}
+                      </span>
+                    ) : null}
                   </div>
-                  <span className="relative z-10 flex-1 transition-transform duration-200 group-hover:translate-x-0.5">
-                    {item.label}
-                  </span>
-                  {badge ? (
-                    <span className="relative z-10 flex h-5 min-w-[20px] items-center justify-center rounded-full bg-rose-500/20 border border-rose-500/30 px-1.5 text-[10px] font-bold text-rose-400">
-                      {badge}
-                    </span>
-                  ) : null}
-                  {active && (
-                    <ChevronRight className="relative z-10 w-3.5 h-3.5 text-cyan-400/60" />
-                  )}
+
+                  {/* Label + badge when expanded */}
+                  <AnimatePresence>
+                    {isOpen && (
+                      <motion.div
+                        initial={{ opacity: 0, x: -6 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: -6 }}
+                        transition={{ duration: 0.14, ease: "easeOut" }}
+                        className="relative z-10 flex flex-1 items-center gap-2 overflow-hidden whitespace-nowrap"
+                      >
+                        <span className="flex-1">{item.label}</span>
+                        {badge ? (
+                          <span className="flex h-4.5 min-w-[18px] items-center justify-center rounded-full bg-rose-500/20 border border-rose-500/30 px-1 text-[9px] font-bold text-rose-400">
+                            {badge}
+                          </span>
+                        ) : null}
+                        {active && (
+                          <ChevronRight className="w-3 h-3 text-cyan-400/50 shrink-0" />
+                        )}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </Link>
               );
             })}
           </div>
         </div>
 
-        {/* Sign Out — always visible */}
-        <div className="pt-4 border-t border-white/5 shrink-0">
+        {/* ── Sign Out (always visible) ── */}
+        <div className="shrink-0 px-2 pt-3 border-t border-white/5">
           <button
             onClick={handleLogout}
-            className="w-full flex items-center justify-center gap-2.5 px-4 py-3.5 rounded-2xl text-sm font-bold text-rose-400 bg-rose-500/8 hover:bg-rose-500/15 transition-all cursor-pointer border border-rose-500/15 hover:border-rose-500/30 min-h-[48px] touch-manipulation group"
+            title={!isOpen ? "Sign Out" : undefined}
+            className="w-full flex items-center gap-3 px-2.5 py-2.5 rounded-xl text-sm font-bold text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 transition-all group min-h-[44px] touch-manipulation overflow-hidden border border-transparent hover:border-rose-500/20"
           >
-            <LogOut className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform duration-200" />
-            <span>Sign Out</span>
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-rose-500/10 group-hover:bg-rose-500/15 transition-all">
+              <LogOut className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform duration-200" />
+            </div>
+            <AnimatePresence>
+              {isOpen && (
+                <motion.span
+                  initial={{ opacity: 0, x: -6 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -6 }}
+                  transition={{ duration: 0.14, ease: "easeOut" }}
+                  className="whitespace-nowrap"
+                >
+                  Sign Out
+                </motion.span>
+              )}
+            </AnimatePresence>
           </button>
         </div>
-      </aside>
+      </motion.aside>
     </>
   );
 }
 
-export function AuthGuard({ children, roles }: { children: React.ReactNode; roles?: string[] }) {
+/* ────────────────────────────────────────────────────────── */
+/* AuthGuard                                                   */
+/* ────────────────────────────────────────────────────────── */
+export function AuthGuard({
+  children,
+  roles,
+}: {
+  children: React.ReactNode;
+  roles?: string[];
+}) {
   const router = useRouter();
   const [authorized, setAuthorized] = useState(false);
 
