@@ -90,10 +90,58 @@ export function Card({
       whileHover={onClick ? { y: -6, scale: 1.015, rotateX: -2, rotateY: 1.5 } : { y: -3, scale: 1.005, rotateX: -0.5 }}
       whileTap={onClick ? { scale: 0.985 } : {}}
       onClick={onClick}
-      className={`glass-panel rounded-3xl p-5 backdrop-blur-3xl transition-all duration-300 hover:shadow-2xl hover:shadow-cyan-500/10 ${onClick ? "cursor-pointer" : ""} ${className}`}
+      className={`relative overflow-hidden glass-panel rounded-3xl p-5 backdrop-blur-3xl transition-all duration-300 hover:shadow-2xl hover:shadow-cyan-500/10 ${onClick ? "cursor-pointer" : ""} ${className}`}
       style={{ perspective: 1000 }}
     >
-      {children}
+      {/* Dynamic Flowing Neon Water Background */}
+      <div className="absolute inset-0 pointer-events-none z-0 opacity-15 overflow-hidden">
+        <svg className="absolute bottom-0 left-0 w-full h-[60%]" viewBox="0 0 100 50" preserveAspectRatio="none">
+          <defs>
+            <linearGradient id="cardNeonGlow" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="#06b6d4" stopOpacity="0.5" />
+              <stop offset="50%" stopColor="#7c3aed" stopOpacity="0.3" />
+              <stop offset="100%" stopColor="#06b6d4" stopOpacity="0" />
+            </linearGradient>
+            <filter id="cardGlowFilter">
+              <feGaussianBlur stdDeviation="3" result="coloredBlur" />
+              <feMerge>
+                <feMergeNode in="coloredBlur" />
+                <feMergeNode in="SourceGraphic" />
+              </feMerge>
+            </filter>
+          </defs>
+          <motion.path
+            fill="url(#cardNeonGlow)"
+            filter="url(#cardGlowFilter)"
+            initial={{ d: "M 0,25 C 20,20 40,30 60,25 C 80,20 90,28 100,25 L 100,50 L 0,50 Z" }}
+            animate={{
+              d: [
+                "M 0,25 C 20,20 40,30 60,25 C 80,20 90,28 100,25 L 100,50 L 0,50 Z",
+                "M 0,25 C 25,30 38,18 63,23 C 83,28 92,20 100,25 L 100,50 L 0,50 Z",
+                "M 0,25 C 20,20 40,30 60,25 C 80,20 90,28 100,25 L 100,50 L 0,50 Z"
+              ]
+            }}
+            transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+          />
+          <motion.path
+            fill="url(#cardNeonGlow)"
+            opacity="0.6"
+            initial={{ d: "M 0,32 C 20,28 45,35 65,30 C 80,25 90,32 100,30 L 100,50 L 0,50 Z" }}
+            animate={{
+              d: [
+                "M 0,32 C 20,28 45,35 65,30 C 80,25 90,32 100,30 L 100,50 L 0,50 Z",
+                "M 0,32 C 25,35 48,25 68,32 C 82,38 92,28 100,30 L 100,50 L 0,50 Z",
+                "M 0,32 C 20,28 45,35 65,30 C 80,25 90,32 100,30 L 100,50 L 0,50 Z"
+              ]
+            }}
+            transition={{ duration: 4.5, repeat: Infinity, ease: "easeInOut" }}
+          />
+        </svg>
+      </div>
+
+      <div className="relative z-10 w-full h-full">
+        {children}
+      </div>
     </motion.div>
   );
 }
