@@ -227,7 +227,6 @@ class PasswordResetRequestResponse(BaseModel):
 
 
 class QuestionReviewCreate(BaseModel):
-    question_id: UUID
     reason: str
 
 
