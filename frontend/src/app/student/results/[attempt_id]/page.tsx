@@ -193,9 +193,8 @@ export default function ResultPage({
             </div>
           )}
 
-          {/* Sticky Header */}
           <header className="sticky top-0 z-20 border-b border-[#1e223c] bg-[#080a14]/80 px-6 py-4 backdrop-blur-xl">
-            <div className="mx-auto max-w-7xl flex items-center justify-between">
+            <div className="max-w-7xl flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-cyan-500/10 border border-cyan-500/20">
                   <BookOpen className="w-5 h-5 text-cyan-400" />
@@ -220,7 +219,7 @@ export default function ResultPage({
           </header>
 
           <main className="px-6 py-8">
-            <div className="mx-auto max-w-7xl grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+            <div className="max-w-7xl grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
               
               {/* Left/Center Pane: Question and Options */}
               <div className="lg:col-span-8 space-y-6">
@@ -324,7 +323,7 @@ export default function ResultPage({
                     <Target className="w-4 h-4 text-cyan-400" />
                     <h3 className="text-xs font-black uppercase tracking-wider text-slate-400">Test Navigation</h3>
                   </div>
-                  <div className="grid grid-cols-5 gap-2 max-h-[220px] overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-white/10">
+                  <div className="grid grid-cols-5 gap-2 p-1">
                     {data.review.map((r, i) => {
                       let btnCls = "w-10 h-10 rounded-xl text-xs font-black flex items-center justify-center border transition-all cursor-pointer ";
                       if (r.is_correct === true)
@@ -335,7 +334,7 @@ export default function ResultPage({
                         btnCls += "bg-white/3 border-white/5 text-slate-500 hover:bg-white/8 hover:text-slate-300";
 
                       if (i === reviewIndex) {
-                        btnCls += " ring-2 ring-cyan-400 ring-offset-2 ring-offset-[#080a14] scale-105 border-transparent shadow-lg shadow-cyan-500/20";
+                        btnCls += " border-cyan-400 bg-cyan-500/15 text-cyan-300 shadow-[0_0_12px_rgba(34,211,238,0.25)]";
                       }
                       
                       return (
@@ -382,9 +381,8 @@ export default function ResultPage({
             </div>
           </main>
 
-          {/* Bottom Control Bar */}
           <footer className="fixed bottom-0 left-0 fixed-sidebar-offset right-0 z-30 border-t border-[#1e223c] bg-[#080a14]/90 px-6 py-4.5 backdrop-blur-xl safe-bottom">
-            <div className="mx-auto max-w-7xl flex items-center justify-between gap-4">
+            <div className="max-w-7xl flex items-center justify-between gap-4">
               <motion.button
                 whileTap={{ scale: 0.97 }}
                 onClick={() => navigateTo(Math.max(0, reviewIndex - 1))}
@@ -487,9 +485,8 @@ export default function ResultPage({
     <AuthGuard roles={["student", "parent"]}>
       <div className="min-h-screen bg-[#080a14] bg-grid-glow bg-dot-pattern pb-28 safe-top safe-bottom text-slate-100">
         
-        {/* Header */}
-        <header className="sticky top-0 z-20 border-b border-[#1e223c] bg-[#080a14]/80 px-4 py-4 backdrop-blur-xl">
-          <div className="mx-auto max-w-7xl flex items-center justify-between">
+        <header className="sticky top-0 z-20 border-b border-[#1e223c] bg-[#080a14]/80 px-6 py-4 backdrop-blur-xl">
+          <div className="max-w-7xl flex items-center justify-between">
             <h1 className="text-lg font-black text-white tracking-tight uppercase">Result Report</h1>
             <button
               onClick={() => router.push("/student")}
@@ -501,7 +498,7 @@ export default function ResultPage({
           </div>
         </header>
 
-        <main className="mx-auto max-w-7xl px-4 py-6 md:py-8">
+        <main className="max-w-7xl px-6 py-6 md:py-8">
           {pendingManualGrade && (
             <div className="mb-6 rounded-2xl border border-amber-500/30 bg-amber-500/10 p-5 text-center">
               <p className="text-sm font-bold text-amber-400 uppercase tracking-wider">Pending Tutor Grading</p>

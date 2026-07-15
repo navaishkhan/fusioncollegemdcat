@@ -116,8 +116,8 @@ export default function StudentTestsPage() {
         className="min-h-screen bg-[#080a14] bg-grid-glow bg-dot-pattern"
       >
         {/* ── Header ── */}
-        <header className="sticky top-0 z-20 bg-[#080a14]/80 backdrop-blur-xl border-b border-white/5 px-4 py-4">
-          <div className="max-w-3xl mx-auto">
+        <header className="sticky top-0 z-20 bg-[#080a14]/80 backdrop-blur-xl border-b border-white/5 px-6 py-4">
+          <div className="max-w-5xl">
             <div className="flex items-center justify-between mb-4">
               <div>
                 <h1 className="text-xl font-black text-white tracking-tight">My Tests</h1>
@@ -179,7 +179,7 @@ export default function StudentTestsPage() {
         </header>
 
         {/* ── Content ── */}
-        <main className="px-4 py-5 pb-32 max-w-3xl mx-auto">
+        <main className="px-6 py-5 pb-32 max-w-5xl">
           {/* Error */}
           {error && (
             <div className="flex items-center gap-3 p-4 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-rose-400 mb-4">

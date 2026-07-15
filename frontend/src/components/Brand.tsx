@@ -46,12 +46,12 @@ export function PageShell({
 }) {
   return (
     <div className="min-h-screen bg-[#080a14] bg-grid-glow bg-dot-pattern safe-top safe-bottom">
-      <header className="sticky top-0 z-20 border-b border-brand-border bg-[#080a14]/80 px-4 py-3 backdrop-blur-xl shadow-sm">
-        <div className="mx-auto max-w-lg md:max-w-4xl flex items-center justify-between">
+      <header className="sticky top-0 z-20 border-b border-brand-border bg-[#080a14]/80 px-6 py-3 backdrop-blur-xl shadow-sm">
+        <div className="max-w-5xl flex items-center justify-between">
           <BrandHeader />
         </div>
         {title && (
-          <div className="mx-auto max-w-lg md:max-w-4xl mt-3">
+          <div className="max-w-5xl mt-3">
             <motion.h1 
               initial={{ opacity: 0, x: -10 }}
               animate={{ opacity: 1, x: 0 }}
@@ -66,7 +66,7 @@ export function PageShell({
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.35, ease: "easeOut" }}
-        className="mx-auto max-w-lg md:max-w-4xl px-4 py-4 pb-28"
+        className="max-w-5xl px-6 py-4 pb-28"
       >
         {children}
       </motion.main>
