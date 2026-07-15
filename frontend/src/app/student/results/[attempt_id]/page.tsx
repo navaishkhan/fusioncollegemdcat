@@ -209,16 +209,16 @@ export default function ResultPage({
               </button>
             </div>
             {/* Quick selector dots */}
-            <div className="mx-auto max-w-7xl mt-4 flex flex-wrap gap-1.5 max-h-[85px] overflow-y-auto pr-1 scrollbar-thin">
+            <div className="mx-auto max-w-7xl mt-4 flex gap-2 overflow-x-auto pb-3.5 pr-1 scrollbar-thin scrollbar-track-white/5 scrollbar-thumb-white/10 whitespace-nowrap">
               {data.review.map((r, i) => {
-                let cls = "w-9 h-9 rounded-xl text-xs font-black flex items-center justify-center border transition-all cursor-pointer ";
+                let cls = "shrink-0 w-9 h-9 rounded-xl text-xs font-black flex items-center justify-center border transition-all cursor-pointer ";
                 if (r.is_correct === true)
                   cls += "bg-emerald-500/10 border-emerald-500/30 text-emerald-400 shadow-md shadow-emerald-500/5";
                 else if (r.is_correct === false)
                   cls += "bg-red-500/10 border-red-500/30 text-red-400 shadow-md shadow-red-500/5";
                 else
                   cls += "bg-[#0c0e1a] border-[#1e223c] text-slate-500 hover:border-slate-600";
-                if (i === reviewIndex) cls += " ring-2 ring-cyan-400 border-transparent scale-110";
+                if (i === reviewIndex) cls += " ring-2 ring-cyan-400 ring-offset-2 ring-offset-[#080a14] scale-105 border-transparent";
                 return (
                   <button
                     key={r.question_id}
@@ -326,7 +326,6 @@ export default function ResultPage({
                   </AnimatePresence>
                 </div>
               </div>
-
               {/* Right Pane: Tutor Explanation Notes */}
               <div className="col-span-1 space-y-6 md:sticky md:top-40">
                 {item.explanation ? (
@@ -344,16 +343,17 @@ export default function ResultPage({
                     </div>
                   </motion.div>
                 ) : (
-                  <div className="rounded-3xl border border-[#1e223c]/40 bg-[#0c0e1a]/40 p-6 text-center text-slate-500 text-xs italic">
-                    No explanation provided by the tutor.
+                  <div className="rounded-3xl border border-white/5 bg-white/3 p-6 text-center text-slate-400 text-xs leading-relaxed">
+                    <HelpCircle className="w-5 h-5 mx-auto mb-2 text-slate-500" />
+                    No explanation has been provided for this question.
                   </div>
                 )}
 
                 <button
                   onClick={() => setReviewRequestOpen(true)}
-                  className="w-full rounded-2xl border border-amber-500/20 bg-amber-500/5 py-4 text-xs font-black uppercase tracking-widest text-amber-400 hover:bg-amber-500/10 hover:border-amber-500/40 transition-all cursor-pointer flex items-center justify-center gap-2"
+                  className="w-full rounded-2xl border border-amber-500/20 bg-amber-500/5 py-4 text-xs font-black uppercase tracking-widest text-amber-400 hover:bg-amber-500/10 hover:border-amber-500/40 transition-all cursor-pointer flex items-center justify-center gap-2.5"
                 >
-                  <HelpCircle className="w-4 h-4" />
+                  <HelpCircle className="w-4 h-4 text-amber-400 shrink-0" />
                   <span>Request Tutor Review</span>
                 </button>
               </div>
@@ -450,6 +450,8 @@ export default function ResultPage({
               </motion.div>
             )}
           </AnimatePresence>
+
+          <MobileNav />
         </div>
       </AuthGuard>
     );
