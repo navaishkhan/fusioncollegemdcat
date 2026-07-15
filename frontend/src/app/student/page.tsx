@@ -81,6 +81,10 @@ export default function StudentDashboard() {
     a.test_title.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  const completionRate = (totalTests + openAssignments.length) > 0
+    ? Math.round((totalTests / (totalTests + openAssignments.length)) * 100)
+    : 0;
+
   return (
     <AuthGuard roles={["student"]}>
       <PageShell title="Dashboard">
@@ -357,7 +361,7 @@ export default function StudentDashboard() {
                   </div>
                 </div>
 
-                {/* Accuracy Widget (Glow Ring) */}
+                {/* Completion Progress Widget (Glow Ring) */}
                 <div className="flex items-center gap-4 rounded-2xl border border-white/5 bg-black/20 p-4">
                   {/* SVG mini circle */}
                   <div className="relative h-14 w-14 shrink-0 flex items-center justify-center">
@@ -367,21 +371,21 @@ export default function StudentDashboard() {
                         cx="28"
                         cy="28"
                         r="22"
-                        stroke="#7c3aed"
+                        stroke="#06b6d4"
                         strokeWidth="4"
                         fill="transparent"
                         strokeDasharray={2 * Math.PI * 22}
                         initial={{ strokeDashoffset: 2 * Math.PI * 22 }}
-                        animate={{ strokeDashoffset: 2 * Math.PI * 22 * (1 - 0.74) }}
+                        animate={{ strokeDashoffset: 2 * Math.PI * 22 * (1 - completionRate / 100) }}
                         transition={{ duration: 1.5, ease: "easeOut" }}
                         filter="url(#glowFilter)"
                       />
                     </svg>
-                    <span className="absolute text-xs font-bold text-white">74%</span>
+                    <span className="absolute text-xs font-bold text-white">{completionRate}%</span>
                   </div>
                   <div>
-                    <h4 className="text-xs font-bold text-white uppercase tracking-wider">MDCAT Target Accuracy</h4>
-                    <p className="text-[10px] text-slate-500 mt-1 leading-normal">Required average correctness threshold for top medical colleges.</p>
+                    <h4 className="text-xs font-bold text-white uppercase tracking-wider">Mock Completion Rate</h4>
+                    <p className="text-[10px] text-slate-500 mt-1 leading-normal">Your mock test completion progress. Keep attempting active tests to hit 100%.</p>
                   </div>
                 </div>
               </div>
