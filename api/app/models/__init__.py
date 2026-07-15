@@ -153,7 +153,7 @@ class Test(Base):
     negative_marking: Mapped[float] = mapped_column(Float, default=-0.25)
     randomize_order: Mapped[bool] = mapped_column(Boolean, default=True)
     show_review_after_submit: Mapped[bool] = mapped_column(Boolean, default=True)
-    marking_mode: Mapped[MarkingMode] = mapped_column(Enum(MarkingMode), default=MarkingMode.AUTO)
+    marking_mode: Mapped[MarkingMode] = mapped_column(Enum(MarkingMode, values_callable=lambda x: [e.value for e in x]), default=MarkingMode.AUTO)
     created_by_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("users.id"))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
