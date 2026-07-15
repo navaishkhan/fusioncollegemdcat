@@ -39,7 +39,7 @@ export default function ManualGradingPage() {
 
         {loading && (
           <div className="flex items-center justify-center py-8">
-            <div className="text-sm text-zinc-500">Loading...</div>
+            <span className="h-6 w-6 animate-spin rounded-full border-2 border-cyan-500/30 border-t-cyan-400" />
           </div>
         )}
 
@@ -48,9 +48,9 @@ export default function ManualGradingPage() {
         {!loading && !error && (
           <div className="space-y-3">
             {pending.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-12">
-                <CheckCircle className="h-12 w-12 text-emerald-500/50 mb-3" />
-                <p className="text-sm text-zinc-500">No pending submissions to grade</p>
+              <div className="flex flex-col items-center justify-center py-12 rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl glossy-border">
+                <CheckCircle className="h-12 w-12 text-emerald-400/60 mb-3 animate-pulse" />
+                <p className="text-sm font-semibold text-zinc-400">No pending submissions to grade</p>
               </div>
             ) : (
               pending.map((item, index) => (
@@ -62,27 +62,27 @@ export default function ManualGradingPage() {
                 >
                   <Card
                     onClick={() => router.push(`/tutor/grading/${item.attempt_id}`)}
-                    className="cursor-pointer hover:border-cyan-500/50 transition-colors"
+                    className="cursor-pointer hover:border-cyan-500/50 transition-colors group"
                   >
-                    <div className="flex items-start gap-3">
-                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-500/20">
+                    <div className="flex items-start gap-4">
+                      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-amber-500/10 border border-amber-500/20 group-hover:bg-amber-500/20 transition-colors">
                         <Clock className="h-5 w-5 text-amber-400" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1">
-                          <User className="h-3.5 w-3.5 text-zinc-500" />
-                          <h3 className="text-sm font-semibold text-white">
+                        <div className="flex items-center gap-2 mb-1.5">
+                          <User className="h-4 w-4 text-cyan-400 shrink-0" />
+                          <h3 className="text-sm font-bold text-white group-hover:text-cyan-300 transition-colors">
                             {item.student_name}
                           </h3>
                         </div>
-                        <div className="flex items-center gap-2 mb-1">
-                          <FileText className="h-3.5 w-3.5 text-zinc-500" />
-                          <p className="text-xs text-zinc-400 truncate">{item.test_title}</p>
+                        <div className="flex items-center gap-2 mb-2">
+                          <FileText className="h-3.5 w-3.5 text-zinc-500 shrink-0" />
+                          <p className="text-xs text-zinc-400 truncate font-medium">{item.test_title}</p>
                         </div>
                         {item.submitted_at && (
-                          <p className="text-[10px] text-zinc-500">
+                          <div className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider">
                             Submitted {new Date(item.submitted_at).toLocaleString()}
-                          </p>
+                          </div>
                         )}
                       </div>
                     </div>

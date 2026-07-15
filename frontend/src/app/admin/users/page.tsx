@@ -399,21 +399,21 @@ export default function AdminUsersPage() {
             value={search}
             onChange={(e) => { setSearch(e.target.value); setSearchResults([]); }}
             placeholder="Search by name or email..."
-            className="flex-1 rounded-xl border border-[#2b3052] bg-[#0a0c14] px-3 py-2.5 text-sm text-white placeholder-zinc-600"
+            className="flex-1 rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-white placeholder-zinc-500 focus:outline-none focus:border-cyan-500/40 focus:bg-white/8 transition-all"
           />
-          <button onClick={doSearch} className="rounded-xl bg-[#3d4193] px-4 py-2.5 text-sm font-semibold text-white">
+          <button onClick={doSearch} className="rounded-xl bg-gradient-to-r from-cyan-500 to-purple-600 px-4 py-2.5 text-sm font-semibold text-white cursor-pointer magnetic-btn">
             Search
           </button>
         </div>
 
         {/* Role filter + Add buttons */}
         <div className="mb-4 space-y-3">
-          <div className="flex gap-2 overflow-x-auto pb-1 flex-1">
-            <button onClick={() => setFilterRole("")} className={`shrink-0 rounded-full px-3 py-1.5 text-xs font-semibold ${!filterRole ? "bg-cyan-500/20 text-cyan-400" : "bg-[#16192b] text-zinc-400"}`}>
+          <div className="flex gap-2 overflow-x-auto pb-1 flex-1 scrollbar-none">
+            <button onClick={() => setFilterRole("")} className={`shrink-0 rounded-full px-3 py-1.5 text-xs font-semibold cursor-pointer ${!filterRole ? "bg-cyan-500/20 text-cyan-400 animate-pulse" : "bg-white/5 text-zinc-400"}`}>
               All
             </button>
             {ROLES.map((r) => (
-              <button key={r} onClick={() => setFilterRole(r)} className={`shrink-0 rounded-full px-3 py-1.5 text-xs font-semibold capitalize ${filterRole === r ? "bg-cyan-500/20 text-cyan-400" : "bg-[#16192b] text-zinc-400"}`}>
+              <button key={r} onClick={() => setFilterRole(r)} className={`shrink-0 rounded-full px-3 py-1.5 text-xs font-semibold capitalize cursor-pointer ${filterRole === r ? "bg-cyan-500/20 text-cyan-400 animate-pulse" : "bg-white/5 text-zinc-400"}`}>
                 {r}
               </button>
             ))}
@@ -423,25 +423,25 @@ export default function AdminUsersPage() {
             <div className="grid grid-cols-4 gap-2">
               <button
                 onClick={() => setSelectMode(true)}
-                className="flex items-center justify-center gap-1.5 rounded-xl border border-zinc-500/20 bg-zinc-500/10 py-2.5 text-xs font-bold text-zinc-300 hover:bg-zinc-500/20 transition-colors"
+                className="flex items-center justify-center gap-1.5 rounded-xl border border-white/10 bg-white/5 py-2.5 text-xs font-bold text-zinc-300 hover:bg-white/10 transition-colors cursor-pointer"
               >
                 <CheckSquare className="h-3.5 w-3.5" /> Select
               </button>
               <button
                 onClick={() => openAddModal("student")}
-                className="flex items-center justify-center gap-1.5 rounded-xl border border-cyan-500/20 bg-cyan-500/10 py-2.5 text-xs font-bold text-cyan-300 hover:bg-cyan-500/20 transition-colors"
+                className="flex items-center justify-center gap-1.5 rounded-xl border border-cyan-500/20 bg-cyan-500/5 py-2.5 text-xs font-bold text-cyan-300 hover:bg-cyan-500/10 transition-colors cursor-pointer magnetic-btn"
               >
                 <UserPlus className="h-3.5 w-3.5" /> Student
               </button>
               <button
                 onClick={() => openAddModal("tutor")}
-                className="flex items-center justify-center gap-1.5 rounded-xl border border-purple-500/20 bg-purple-500/10 py-2.5 text-xs font-bold text-purple-300 hover:bg-purple-500/20 transition-colors"
+                className="flex items-center justify-center gap-1.5 rounded-xl border border-purple-500/20 bg-purple-500/5 py-2.5 text-xs font-bold text-purple-300 hover:bg-purple-500/10 transition-colors cursor-pointer magnetic-btn"
               >
                 <BookOpen className="h-3.5 w-3.5" /> Tutor
               </button>
               <button
                 onClick={() => openAddModal("admin")}
-                className="flex items-center justify-center gap-1.5 rounded-xl border border-rose-500/20 bg-rose-500/10 py-2.5 text-xs font-bold text-rose-300 hover:bg-rose-500/20 transition-colors"
+                className="flex items-center justify-center gap-1.5 rounded-xl border border-rose-500/20 bg-rose-500/5 py-2.5 text-xs font-bold text-rose-300 hover:bg-rose-500/10 transition-colors cursor-pointer magnetic-btn"
               >
                 <Shield className="h-3.5 w-3.5" /> Admin
               </button>
@@ -450,7 +450,7 @@ export default function AdminUsersPage() {
             <div className="flex items-center gap-2">
               <button
                 onClick={toggleAll}
-                className="flex items-center gap-1.5 rounded-xl border border-[#2b3052] bg-[#16192b] px-3 py-2 text-xs font-bold text-zinc-300 hover:text-white transition-colors"
+                className="flex items-center gap-1.5 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs font-bold text-zinc-300 hover:text-white transition-colors cursor-pointer"
               >
                 {selectedIds.size === displayed.length && displayed.length > 0 ? <CheckSquare className="h-4 w-4 text-cyan-400" /> : <Square className="h-4 w-4" />}
                 {selectedIds.size === displayed.length && displayed.length > 0 ? "Deselect All" : "Select All"}
@@ -459,12 +459,12 @@ export default function AdminUsersPage() {
               {selectedIds.size > 0 && (
                 <button
                   onClick={() => setConfirmBulk(true)}
-                  className="flex items-center gap-1.5 rounded-xl bg-red-600/20 border border-red-500/30 px-3 py-2 text-xs font-bold text-red-400 hover:bg-red-600/30 transition-colors"
+                  className="flex items-center gap-1.5 rounded-xl bg-red-600/20 border border-red-500/30 px-3 py-2 text-xs font-bold text-red-400 hover:bg-red-600/30 transition-colors cursor-pointer"
                 >
                   <Trash2 className="h-4 w-4" /> Delete
                 </button>
               )}
-              <button onClick={exitSelectMode} className="rounded-xl border border-[#2b3052] p-2 text-zinc-400 hover:text-white">
+              <button onClick={exitSelectMode} className="rounded-xl border border-white/10 p-2 text-zinc-400 hover:text-white cursor-pointer">
                 <X className="h-4 w-4" />
               </button>
             </div>
@@ -536,22 +536,22 @@ export default function AdminUsersPage() {
                         </div>
                       </div>
                       {!selectMode && (
-                        <div className="flex shrink-0 flex-col gap-1.5">
+                        <div className="flex shrink-0 flex-col gap-1.5 z-10" onClick={(e) => e.stopPropagation()}>
                           <button
                             onClick={() => toggleActive(u.id, u.is_active)}
-                            className={`rounded-lg px-3 py-1 text-xs font-semibold ${u.is_active ? "bg-red-600/30 text-red-300" : "bg-emerald-600/30 text-emerald-300"}`}
+                            className={`rounded-lg px-3 py-1 text-xs font-semibold cursor-pointer transition-colors ${u.is_active ? "bg-red-600/20 border border-red-500/30 text-red-300 hover:bg-red-600/30" : "bg-emerald-600/20 border border-emerald-500/30 text-emerald-300 hover:bg-emerald-600/30"}`}
                           >
                             {u.is_active ? "Deactivate" : "Activate"}
                           </button>
                           <button
                             onClick={() => openResetModal(u)}
-                            className="rounded-lg bg-cyan-600/30 px-3 py-1 text-xs font-semibold text-cyan-300"
+                            className="rounded-lg bg-cyan-500/10 border border-cyan-500/20 px-3 py-1 text-xs font-semibold text-cyan-400 cursor-pointer hover:bg-cyan-500/20 transition-colors"
                           >
                             Reset Pwd
                           </button>
                           <button
                             onClick={() => setDeleteModal({ id: u.id, name: u.full_name })}
-                            className="rounded-lg bg-red-900/30 px-3 py-1 text-xs font-semibold text-red-400"
+                            className="rounded-lg bg-red-900/10 border border-red-500/20 px-3 py-1 text-xs font-semibold text-red-400 cursor-pointer hover:bg-red-950/20 transition-colors"
                           >
                             Delete
                           </button>
@@ -559,15 +559,15 @@ export default function AdminUsersPage() {
                       )}
                     </div>
                     {u.role === "student" && (
-                      <div className="mt-2 flex items-center gap-2 border-t border-[#1e233d] pt-2">
+                      <div className="mt-2 flex items-center gap-2 border-t border-white/5 pt-2">
                         <select
                           value={parentSelections[u.id] ?? u.parent_id ?? ""}
                           onChange={(e) => setParentSelections({ ...parentSelections, [u.id]: e.target.value })}
-                          className="flex-1 rounded-lg border border-[#2b3052] bg-[#0a0c14] px-2 py-1.5 text-xs text-white"
+                          className="flex-1 rounded-lg border border-white/10 bg-white/5 px-2 py-1.5 text-xs text-white focus:outline-none focus:bg-white/8 transition-all"
                         >
-                          <option value="">No Parent Linked</option>
+                          <option value="" className="bg-[#0c0e1a]">No Parent Linked</option>
                           {users.filter(p => p.role === "parent").map(p => (
-                            <option key={p.id} value={p.id}>
+                            <option key={p.id} value={p.id} className="bg-[#0c0e1a]">
                               {p.full_name} ({p.email})
                             </option>
                           ))}
@@ -576,7 +576,7 @@ export default function AdminUsersPage() {
                           onClick={() => {
                             setParent(u.id, parentSelections[u.id] ?? u.parent_id ?? "");
                           }}
-                          className="rounded-lg bg-cyan-600/20 text-cyan-300 hover:bg-cyan-600/40 px-3 py-1.5 text-xs font-bold transition-colors"
+                          className="rounded-lg bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 hover:bg-cyan-500/20 px-3 py-1.5 text-xs font-bold transition-colors cursor-pointer"
                         >
                           Save Parent
                         </button>
@@ -597,7 +597,7 @@ export default function AdminUsersPage() {
       {/* Reset Password Modal */}
       {resetModal && (
         <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/70 backdrop-blur-sm p-4">
-          <div className="w-full max-w-md rounded-3xl border border-[#1e2340] bg-[#0d0f1e] p-6 shadow-2xl">
+          <div className="w-full max-w-md rounded-3xl border border-white/10 bg-white/5 backdrop-blur-xl p-6 shadow-2xl glossy-border">
             <div className="mb-4 flex items-center gap-3">
               <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-cyan-500/20">
                 <KeyRound className="h-5 w-5 text-cyan-400" />
@@ -606,7 +606,7 @@ export default function AdminUsersPage() {
                 <h2 className="text-sm font-bold text-white">Reset Password</h2>
                 <p className="text-xs text-zinc-500">{resetModal.userName}</p>
               </div>
-              <button onClick={() => setResetModal(null)} className="ml-auto text-zinc-500 hover:text-white">
+              <button onClick={() => setResetModal(null)} className="ml-auto text-zinc-500 hover:text-white cursor-pointer">
                 <X className="h-5 w-5" />
               </button>
             </div>
@@ -615,17 +615,17 @@ export default function AdminUsersPage() {
                 <label className="mb-1 block text-xs font-semibold text-zinc-400">New Password</label>
                 <input type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)}
                   placeholder="Min 8 characters"
-                  className="w-full rounded-xl border border-[#2b3052] bg-[#0a0c14] px-3 py-2.5 text-sm text-white placeholder-zinc-600" />
+                  className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-white placeholder-zinc-500 focus:outline-none focus:border-cyan-500/40 focus:bg-white/8 transition-all" />
               </div>
               <div>
                 <label className="mb-1 block text-xs font-semibold text-zinc-400">Confirm Password</label>
                 <input type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)}
                   placeholder="Repeat password"
-                  className="w-full rounded-xl border border-[#2b3052] bg-[#0a0c14] px-3 py-2.5 text-sm text-white placeholder-zinc-600" />
+                  className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-white placeholder-zinc-500 focus:outline-none focus:border-cyan-500/40 focus:bg-white/8 transition-all" />
               </div>
               {resetError && <p className="text-xs text-red-400">{resetError}</p>}
               <button onClick={submitReset} disabled={resetting || !newPassword || !confirmPassword}
-                className="w-full rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 py-3 text-sm font-bold text-white disabled:opacity-50 flex items-center justify-center gap-2">
+                className="w-full rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 py-3 text-sm font-bold text-white disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer magnetic-btn">
                 {resetting ? <><Loader2 className="h-4 w-4 animate-spin" /> Saving...</> : "Set New Password"}
               </button>
             </div>
@@ -639,12 +639,12 @@ export default function AdminUsersPage() {
         const Icon = cfg.icon;
         return (
           <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/70 backdrop-blur-sm p-4">
-            <div className="w-full max-w-md rounded-3xl border border-[#1e2340] bg-[#0d0f1e] p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
+            <div className="w-full max-w-md rounded-3xl border border-white/10 bg-white/5 backdrop-blur-xl p-6 shadow-2xl max-h-[90vh] overflow-y-auto glossy-border">
               <div className="mb-5 flex items-center justify-between">
                 <h2 className="text-sm font-bold text-white flex items-center gap-2">
                   <Icon className={`h-4 w-4 text-${cfg.color}-400`} /> {cfg.label}
                 </h2>
-                <button onClick={() => setAddModalType(null)} className="text-zinc-500 hover:text-white">
+                <button onClick={() => setAddModalType(null)} className="text-zinc-500 hover:text-white cursor-pointer">
                   <X className="h-5 w-5" />
                 </button>
               </div>
@@ -654,12 +654,12 @@ export default function AdminUsersPage() {
                 <div className="flex flex-col items-center gap-3">
                   <div
                     onClick={() => fileInputRef.current?.click()}
-                    className="relative h-20 w-20 rounded-full overflow-hidden border-2 border-dashed border-[#2b3052] bg-[#0a0c14] flex items-center justify-center cursor-pointer hover:border-cyan-500/50 transition-colors"
+                    className="relative h-20 w-20 rounded-full overflow-hidden border-2 border-dashed border-white/10 bg-white/5 flex items-center justify-center cursor-pointer hover:border-cyan-500/50 transition-colors"
                   >
                     {picturePreview ? (
                       <Image src={picturePreview} alt="Preview" fill className="object-cover" />
                     ) : (
-                      <Camera className="h-7 w-7 text-zinc-600" />
+                      <Camera className="h-7 w-7 text-zinc-500" />
                     )}
                   </div>
                   <input ref={fileInputRef} type="file" accept="image/*" onChange={handlePictureChange} className="hidden" />
@@ -670,19 +670,19 @@ export default function AdminUsersPage() {
                   <label className="mb-1 block text-xs font-semibold text-zinc-400">Full Name</label>
                   <input value={addForm.full_name} onChange={(e) => setAddForm(f => ({ ...f, full_name: e.target.value }))}
                     placeholder="e.g. Ali Khan"
-                    className="w-full rounded-xl border border-[#2b3052] bg-[#0a0c14] px-3 py-2.5 text-sm text-white placeholder-zinc-600" />
+                    className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-white placeholder-zinc-500 focus:outline-none focus:border-cyan-500/40 focus:bg-white/8 transition-all" />
                 </div>
                 <div>
                   <label className="mb-1 block text-xs font-semibold text-zinc-400">Email Address</label>
                   <input type="email" value={addForm.email} onChange={(e) => setAddForm(f => ({ ...f, email: e.target.value }))}
                     placeholder="ali@example.com"
-                    className="w-full rounded-xl border border-[#2b3052] bg-[#0a0c14] px-3 py-2.5 text-sm text-white placeholder-zinc-600" />
+                    className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-white placeholder-zinc-500 focus:outline-none focus:border-cyan-500/40 focus:bg-white/8 transition-all" />
                 </div>
                 <div>
                   <label className="mb-1 block text-xs font-semibold text-zinc-400">Phone Number <span className="text-zinc-600">(optional)</span></label>
                   <input value={addForm.phone} onChange={(e) => setAddForm(f => ({ ...f, phone: e.target.value }))}
                     placeholder="+92 300 0000000"
-                    className="w-full rounded-xl border border-[#2b3052] bg-[#0a0c14] px-3 py-2.5 text-sm text-white placeholder-zinc-600" />
+                    className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-white placeholder-zinc-500 focus:outline-none focus:border-cyan-500/40 focus:bg-white/8 transition-all" />
                 </div>
 
                 {addModalType === "tutor" && (
@@ -690,7 +690,7 @@ export default function AdminUsersPage() {
                     <label className="mb-1 block text-xs font-semibold text-zinc-400">Subject Specialization</label>
                     <input value={addForm.specialization} onChange={(e) => setAddForm(f => ({ ...f, specialization: e.target.value }))}
                       placeholder="e.g. Biology, Chemistry"
-                      className="w-full rounded-xl border border-[#2b3052] bg-[#0a0c14] px-3 py-2.5 text-sm text-white placeholder-zinc-600" />
+                      className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-white placeholder-zinc-500 focus:outline-none focus:border-cyan-500/40 focus:bg-white/8 transition-all" />
                   </div>
                 )}
 
@@ -698,14 +698,14 @@ export default function AdminUsersPage() {
                   <label className="mb-1 block text-xs font-semibold text-zinc-400">Password</label>
                   <input type="password" value={addForm.password} onChange={(e) => setAddForm(f => ({ ...f, password: e.target.value }))}
                     placeholder="Min 8 characters"
-                    className="w-full rounded-xl border border-[#2b3052] bg-[#0a0c14] px-3 py-2.5 text-sm text-white placeholder-zinc-600" />
+                    className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-white placeholder-zinc-500 focus:outline-none focus:border-cyan-500/40 focus:bg-white/8 transition-all" />
                 </div>
 
                 {addError && <p className="text-xs text-red-400">{addError}</p>}
                 <button
                   onClick={submitAddUser}
                   disabled={addingUser || !addForm.full_name || !addForm.email || !addForm.password}
-                  className={`w-full rounded-xl bg-gradient-to-r ${cfg.accentFrom} ${cfg.accentTo} py-3 mt-2 text-sm font-bold text-white disabled:opacity-50 flex items-center justify-center gap-2`}
+                  className={`w-full rounded-xl bg-gradient-to-r ${cfg.accentFrom} ${cfg.accentTo} py-3 mt-2 text-sm font-bold text-white disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer magnetic-btn`}
                 >
                   {addingUser ? <><Loader2 className="h-4 w-4 animate-spin" /> Creating...</> : cfg.label}
                 </button>
@@ -721,7 +721,7 @@ export default function AdminUsersPage() {
           <motion.div
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            className="w-full max-w-md rounded-3xl border border-red-500/30 bg-[#0d0f1e] p-6 shadow-2xl"
+            className="w-full max-w-md rounded-3xl border border-red-500/30 bg-white/5 backdrop-blur-xl p-6 shadow-2xl glossy-border"
           >
             <div className="mb-4 flex items-center gap-3">
               <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-red-500/20">
@@ -732,13 +732,13 @@ export default function AdminUsersPage() {
                 <p className="text-xs text-zinc-500">{deleteModal.name}</p>
               </div>
             </div>
-            <p className="mb-6 text-sm text-zinc-300">
+            <p className="mb-6 text-sm text-zinc-300 leading-relaxed">
               Are you sure you want to permanently delete this user? This will also erase all their test scores, answers, and batch enrollments. This action cannot be undone.
             </p>
             <div className="flex gap-3">
               <button
                 onClick={() => setDeleteModal(null)}
-                className="flex-1 rounded-xl border border-[#2b3052] bg-transparent py-3 text-sm font-bold text-white hover:bg-[#16192b]"
+                className="flex-1 rounded-xl border border-white/10 bg-transparent py-3 text-sm font-bold text-white hover:bg-white/5 cursor-pointer"
                 disabled={deletingUser}
               >
                 Cancel
@@ -746,7 +746,7 @@ export default function AdminUsersPage() {
               <button
                 onClick={confirmDelete}
                 disabled={deletingUser}
-                className="flex-1 rounded-xl bg-red-600 py-3 text-sm font-bold text-white flex items-center justify-center gap-2 hover:bg-red-500 disabled:opacity-50"
+                className="flex-1 rounded-xl bg-red-600 py-3 text-sm font-bold text-white flex items-center justify-center gap-2 hover:bg-red-500 disabled:opacity-50 cursor-pointer"
               >
                 {deletingUser ? <><Loader2 className="h-4 w-4 animate-spin" /> Deleting...</> : "Delete"}
               </button>
@@ -768,7 +768,7 @@ export default function AdminUsersPage() {
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
-              className="w-full max-w-sm rounded-3xl border border-red-500/30 bg-[#0d0f1e] p-6 shadow-2xl"
+              className="w-full max-w-sm rounded-3xl border border-red-500/30 bg-white/5 backdrop-blur-xl p-6 shadow-2xl glossy-border"
             >
               <div className="mb-4 flex items-center gap-3">
                 <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-red-500/20">
@@ -776,24 +776,24 @@ export default function AdminUsersPage() {
                 </div>
                 <div>
                   <h2 className="text-sm font-bold text-white">Delete {selectedIds.size} Users</h2>
-                  <p className="text-xs text-zinc-500">This action is irreversible</p>
+                  <p className="text-xs text-zinc-500 font-bold uppercase tracking-wider">This action is irreversible</p>
                 </div>
               </div>
-              <p className="mb-6 text-sm text-zinc-300">
+              <p className="mb-6 text-sm text-zinc-300 leading-relaxed">
                 Are you sure you want to permanently delete these users? This action cannot be undone.
               </p>
               <div className="flex gap-3">
                 <button
                   onClick={() => setConfirmBulk(false)}
                   disabled={bulkDeleting}
-                  className="flex-1 rounded-xl border border-[#2b3052] py-3 text-sm font-bold text-white hover:bg-[#16192b] transition-colors"
+                  className="flex-1 rounded-xl border border-white/10 py-3 text-sm font-bold text-white hover:bg-white/5 transition-colors cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleBulkDelete}
                   disabled={bulkDeleting}
-                  className="flex-1 rounded-xl bg-red-600 py-3 text-sm font-bold text-white flex items-center justify-center gap-2 hover:bg-red-500 disabled:opacity-50 transition-colors"
+                  className="flex-1 rounded-xl bg-red-600 py-3 text-sm font-bold text-white flex items-center justify-center gap-2 hover:bg-red-500 disabled:opacity-50 transition-colors cursor-pointer"
                 >
                   {bulkDeleting ? <><Loader2 className="h-4 w-4 animate-spin" /> Deleting...</> : "Delete All"}
                 </button>

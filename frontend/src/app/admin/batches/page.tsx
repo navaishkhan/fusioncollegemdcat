@@ -190,14 +190,14 @@ export default function AdminBatchesPage() {
                   <>
                     <button
                       onClick={() => setShowCreateModal(true)}
-                      className="flex items-center gap-1.5 rounded-xl bg-[#3d4193] px-4 py-2 text-sm font-semibold text-white hover:bg-[#252a4a] transition-colors"
+                      className="flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-700 px-4 py-2 text-sm font-semibold text-white cursor-pointer magnetic-btn shadow-lg shadow-emerald-950/20"
                     >
                       <Plus className="h-4 w-4" /> Create Batch
                     </button>
                     {batches.length > 0 && (
                       <button
                         onClick={() => setSelectMode(true)}
-                        className="flex items-center gap-1.5 rounded-xl border border-[#2b3052] bg-[#16192b] px-3 py-2 text-xs font-semibold text-zinc-400 hover:text-white transition-colors"
+                        className="flex items-center gap-1.5 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs font-semibold text-zinc-400 hover:text-white transition-colors cursor-pointer"
                       >
                         <CheckSquare className="h-4 w-4" /> Select
                       </button>
@@ -207,7 +207,7 @@ export default function AdminBatchesPage() {
                   <>
                     <button
                       onClick={toggleAll}
-                      className="flex items-center gap-1.5 rounded-xl border border-[#2b3052] bg-[#16192b] px-3 py-2 text-xs font-bold text-zinc-300 hover:text-white transition-colors"
+                      className="flex items-center gap-1.5 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs font-bold text-zinc-300 hover:text-white transition-colors cursor-pointer"
                     >
                       {selectedIds.size === batches.length ? <CheckSquare className="h-4 w-4 text-cyan-400" /> : <Square className="h-4 w-4" />}
                       {selectedIds.size === batches.length ? "Deselect All" : "Select All"}
@@ -216,12 +216,12 @@ export default function AdminBatchesPage() {
                     {selectedIds.size > 0 && (
                       <button
                         onClick={() => setConfirmBulk(true)}
-                        className="flex items-center gap-1.5 rounded-xl bg-red-600/20 border border-red-500/30 px-3 py-2 text-xs font-bold text-red-400 hover:bg-red-600/30 transition-colors"
+                        className="flex items-center gap-1.5 rounded-xl bg-red-600/20 border border-red-500/30 px-3 py-2 text-xs font-bold text-red-400 hover:bg-red-600/30 transition-colors cursor-pointer"
                       >
                         <Trash2 className="h-4 w-4" /> Delete
                       </button>
                     )}
-                    <button onClick={exitSelectMode} className="rounded-xl border border-[#2b3052] p-2 text-zinc-400 hover:text-white">
+                    <button onClick={exitSelectMode} className="rounded-xl border border-white/10 p-2 text-zinc-400 hover:text-white cursor-pointer">
                       <X className="h-4 w-4" />
                     </button>
                   </>
@@ -233,9 +233,9 @@ export default function AdminBatchesPage() {
                   <Loader2 className="h-6 w-6 animate-spin text-cyan-500" />
                 </div>
               ) : batches.length === 0 ? (
-                <div className="rounded-2xl border border-[#2b3052] bg-[#0a0c14] p-8 text-center text-zinc-500">
-                  <Users className="mx-auto mb-2 h-8 w-8 opacity-50" />
-                  <p>No batches exist yet.</p>
+                <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl p-8 text-center text-zinc-500 glossy-border">
+                  <Users className="mx-auto mb-2 h-8 w-8 text-cyan-500 opacity-60 animate-bounce" />
+                  <p className="text-sm font-semibold">No batches exist yet.</p>
                 </div>
               ) : (
                 <div className="grid gap-3 sm:grid-cols-2">
@@ -281,21 +281,21 @@ export default function AdminBatchesPage() {
                 ← Back to Batches
               </button>
 
-              <div className="mb-6 rounded-2xl border border-[#2b3052] bg-[#0a0c14] p-5">
+              <div className="mb-6 rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl p-5 glossy-border">
                 <h3 className="mb-3 text-sm font-bold text-white flex items-center gap-2">
-                  <Users className="h-4 w-4 text-cyan-500" /> Add Student to Batch
+                  <Users className="h-4 w-4 text-cyan-400" /> Add Student to Batch
                 </h3>
                 <div className="flex flex-col sm:flex-row gap-3">
                   <select
                     value={studentToEnroll}
                     onChange={(e) => setStudentToEnroll(e.target.value)}
-                    className="flex-1 rounded-xl border border-[#2b3052] bg-[#16192b] px-3 py-2 text-sm text-white outline-none focus:border-cyan-500/50"
+                    className="flex-1 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white outline-none focus:border-cyan-500/50 focus:bg-white/8 transition-all"
                   >
-                    <option value="">Select a student...</option>
+                    <option value="" className="bg-[#0c0e1a]">Select a student...</option>
                     {allStudents
                       .filter((s) => !enrolledStudents.some((es) => es.id === s.id))
                       .map((s) => (
-                        <option key={s.id} value={s.id}>
+                        <option key={s.id} value={s.id} className="bg-[#0c0e1a]">
                           {s.full_name} ({s.email})
                         </option>
                       ))}
@@ -303,7 +303,7 @@ export default function AdminBatchesPage() {
                   <button
                     onClick={handleEnroll}
                     disabled={enrolling || !studentToEnroll}
-                    className="flex items-center justify-center gap-2 rounded-xl bg-cyan-600 px-6 py-2 text-sm font-bold text-white disabled:opacity-50"
+                    className="flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-cyan-500 to-purple-600 px-6 py-2 text-sm font-bold text-white disabled:opacity-50 cursor-pointer magnetic-btn"
                   >
                     {enrolling ? <Loader2 className="h-4 w-4 animate-spin" /> : "Enroll"}
                   </button>
@@ -319,7 +319,7 @@ export default function AdminBatchesPage() {
                   <Loader2 className="h-6 w-6 animate-spin text-cyan-500" />
                 </div>
               ) : enrolledStudents.length === 0 ? (
-                <div className="rounded-2xl border border-[#2b3052] bg-[#0a0c14] p-8 text-center text-zinc-500 text-sm">
+                <div className="rounded-2xl border border-white/5 bg-white/3 p-8 text-center text-zinc-500 text-sm">
                   No students enrolled in this batch yet.
                 </div>
               ) : (
@@ -327,7 +327,7 @@ export default function AdminBatchesPage() {
                   {enrolledStudents.map((student) => (
                     <div
                       key={student.id}
-                      className="flex items-center justify-between rounded-xl border border-[#1e233d] bg-[#0d0e1a] p-3"
+                      className="flex items-center justify-between rounded-xl border border-white/5 bg-white/3 p-3"
                     >
                       <div>
                         <div className="text-sm font-semibold text-white">{student.full_name}</div>
@@ -345,12 +345,12 @@ export default function AdminBatchesPage() {
       {/* Create Batch Modal */}
       {showCreateModal && (
         <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/70 backdrop-blur-sm p-4">
-          <div className="w-full max-w-md rounded-3xl border border-[#1e2340] bg-[#0d0f1e] p-6 shadow-2xl">
+          <div className="w-full max-w-md rounded-3xl border border-white/10 bg-white/5 backdrop-blur-xl p-6 shadow-2xl glossy-border">
             <div className="mb-4 flex items-center justify-between">
               <h2 className="text-sm font-bold text-white flex items-center gap-2">
                 <Plus className="h-4 w-4 text-cyan-400" /> Create New Batch
               </h2>
-              <button onClick={() => setShowCreateModal(false)} className="text-zinc-500 hover:text-white">
+              <button onClick={() => setShowCreateModal(false)} className="text-zinc-500 hover:text-white cursor-pointer">
                 <X className="h-5 w-5" />
               </button>
             </div>
@@ -362,7 +362,7 @@ export default function AdminBatchesPage() {
                   value={batchName}
                   onChange={(e) => setBatchName(e.target.value)}
                   placeholder="e.g. Morning 2026"
-                  className="w-full rounded-xl border border-[#2b3052] bg-[#0a0c14] px-3 py-2.5 text-sm text-white placeholder-zinc-600"
+                  className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-white placeholder-zinc-500 focus:outline-none focus:border-cyan-500/40 focus:bg-white/8 transition-all"
                 />
               </div>
               <div>
@@ -372,14 +372,14 @@ export default function AdminBatchesPage() {
                   onChange={(e) => setBatchDesc(e.target.value)}
                   placeholder="Additional details..."
                   rows={3}
-                  className="w-full rounded-xl border border-[#2b3052] bg-[#0a0c14] px-3 py-2.5 text-sm text-white placeholder-zinc-600"
+                  className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-white placeholder-zinc-500 focus:outline-none focus:border-cyan-500/40 focus:bg-white/8 transition-all"
                 />
               </div>
               
               <button
                 onClick={handleCreateBatch}
                 disabled={creating || !batchName}
-                className="w-full rounded-xl bg-gradient-to-r from-[#3d4193] to-cyan-700 py-3 mt-2 text-sm font-bold text-white disabled:opacity-50 flex items-center justify-center gap-2"
+                className="w-full rounded-xl bg-gradient-to-r from-cyan-500 to-purple-600 py-3 mt-2 text-sm font-bold text-white disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer magnetic-btn shadow-lg shadow-cyan-950/20"
               >
                 {creating ? <><Loader2 className="h-4 w-4 animate-spin" /> Creating...</> : "Create Batch"}
               </button>
@@ -387,6 +387,54 @@ export default function AdminBatchesPage() {
           </div>
         </div>
       )}
+
+      {/* Bulk Delete Confirm Modal */}
+      <AnimatePresence>
+        {confirmBulk && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4"
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="w-full max-w-sm rounded-3xl border border-red-500/30 bg-white/5 backdrop-blur-xl p-6 shadow-2xl glossy-border"
+            >
+              <div className="mb-4 flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-red-500/20">
+                  <Trash2 className="h-5 w-5 text-red-400" />
+                </div>
+                <div>
+                  <h2 className="text-sm font-bold text-white">Delete {selectedIds.size} Batch{selectedIds.size > 1 ? "es" : ""}</h2>
+                  <p className="text-xs text-zinc-500 font-bold uppercase tracking-wider">This action is irreversible</p>
+                </div>
+              </div>
+              <p className="mb-6 text-sm text-zinc-300 leading-relaxed">
+                Are you sure you want to permanently delete these batches? All students enrolled will be removed from the batch.
+              </p>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setConfirmBulk(false)}
+                  disabled={bulkDeleting}
+                  className="flex-1 rounded-xl border border-white/10 py-3 text-sm font-bold text-white hover:bg-white/5 transition-colors cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleBulkDelete}
+                  disabled={bulkDeleting}
+                  className="flex-1 rounded-xl bg-red-600 py-3 text-sm font-bold text-white flex items-center justify-center gap-2 hover:bg-red-500 disabled:opacity-50 transition-colors cursor-pointer"
+                >
+                  {bulkDeleting ? <><Loader2 className="h-4 w-4 animate-spin" /> Deleting...</> : "Delete All"}
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
       
       <MobileNav />
     </AuthGuard>
