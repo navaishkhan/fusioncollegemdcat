@@ -639,7 +639,7 @@ export default function AdminUsersPage() {
         const Icon = cfg.icon;
         return (
           <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/70 backdrop-blur-sm p-4">
-            <div className="w-full max-w-md rounded-3xl border border-white/10 bg-white/5 backdrop-blur-xl p-6 shadow-2xl max-h-[90vh] overflow-y-auto glossy-border">
+            <div className="w-full max-w-md rounded-3xl border border-white/10 bg-white/5 backdrop-blur-xl p-6 shadow-2xl max-h-[90vh] overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-white/10 glossy-border">
               <div className="mb-5 flex items-center justify-between">
                 <h2 className="text-sm font-bold text-white flex items-center gap-2">
                   <Icon className={`h-4 w-4 text-${cfg.color}-400`} /> {cfg.label}

@@ -325,7 +325,7 @@ export default function CreateTestPage() {
                 ))}
               </div>
               {questionsError && <p className="text-sm text-red-400">{questionsError}</p>}
-              <div className="max-h-[400px] space-y-2 overflow-y-auto">
+              <div className="max-h-[400px] space-y-2 overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-white/10">
                 {questions.map((q) => {
                   const selected = selectedIds.has(q.id);
                   return (
