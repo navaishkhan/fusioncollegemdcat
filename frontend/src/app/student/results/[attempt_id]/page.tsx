@@ -351,7 +351,7 @@ export default function ResultPage({
                 </Card>
 
                 {/* Explanation Details */}
-                {item.explanation ? (
+                {item.explanation && (
                   <Card className="border border-white/5 bg-white/3 p-5 shadow-xl">
                     <div className="flex items-center gap-2 border-b border-white/5 pb-3 mb-4">
                       <div className="w-2 h-4 rounded-full bg-cyan-400" />
@@ -361,11 +361,6 @@ export default function ResultPage({
                       <MarkdownRenderer content={item.explanation} />
                     </div>
                   </Card>
-                ) : (
-                  <div className="rounded-3xl border border-white/5 bg-white/2 p-6 text-center text-slate-400 text-xs leading-relaxed">
-                    <HelpCircle className="w-5 h-5 mx-auto mb-2 text-slate-500" />
-                    No explanation has been provided for this question.
-                  </div>
                 )}
 
                 {/* Tutor Request CTA */}
