@@ -85,10 +85,13 @@ export function Card({
 }) {
   return (
     <motion.div
-      whileHover={onClick ? { y: -3, scale: 1.015 } : {}}
+      initial={{ rotateX: 10, y: 15, opacity: 0 }}
+      animate={{ rotateX: 0, y: 0, opacity: 1 }}
+      whileHover={onClick ? { y: -6, scale: 1.015, rotateX: -2, rotateY: 1.5 } : { y: -3, scale: 1.005, rotateX: -0.5 }}
       whileTap={onClick ? { scale: 0.985 } : {}}
       onClick={onClick}
-      className={`glass-panel glossy-border rounded-3xl p-5 backdrop-blur-3xl transition-all duration-300 hover:shadow-2xl hover:shadow-cyan-500/10 ${onClick ? "cursor-pointer" : ""} ${className}`}
+      className={`glass-panel rounded-3xl p-5 backdrop-blur-3xl transition-all duration-300 hover:shadow-2xl hover:shadow-cyan-500/10 ${onClick ? "cursor-pointer" : ""} ${className}`}
+      style={{ perspective: 1000 }}
     >
       {children}
     </motion.div>

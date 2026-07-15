@@ -186,58 +186,45 @@ export default function ResultPage({
 
     return (
       <AuthGuard roles={["student", "parent"]}>
-        <div className="min-h-screen bg-[#080a14] bg-grid-glow bg-dot-pattern pb-36 safe-top safe-bottom text-slate-100">
+        <div className="min-h-screen bg-[#080a14] bg-grid-glow bg-dot-pattern pb-32 text-slate-100 md:pl-[68px]">
           {reviewSuccess && (
-            <div className="fixed top-4 left-4 right-4 z-50 mx-auto max-w-md rounded-xl border border-emerald-500/30 bg-emerald-950/90 px-4 py-3 text-xs font-semibold text-emerald-400 shadow-lg">
+            <div className="fixed top-4 left-4 right-4 z-50 mx-auto max-w-md rounded-xl border border-emerald-500/30 bg-emerald-950/90 px-4 py-3 text-xs font-semibold text-emerald-400 shadow-lg text-center">
               {reviewSuccess}
             </div>
           )}
 
           {/* Sticky Header */}
-          <header className="sticky top-0 z-20 border-b border-[#1e223c] bg-[#080a14]/80 px-4 py-4.5 backdrop-blur-xl">
+          <header className="sticky top-0 z-20 border-b border-[#1e223c] bg-[#080a14]/80 px-6 py-4 backdrop-blur-xl">
             <div className="mx-auto max-w-7xl flex items-center justify-between">
-              <h1 className="text-sm font-black text-white uppercase tracking-widest flex items-center gap-2">
-                <BookOpen className="w-4 h-4 text-cyan-400" />
-                <span>Question Review</span>
-              </h1>
+              <div className="flex items-center gap-3">
+                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-cyan-500/10 border border-cyan-500/20">
+                  <BookOpen className="w-5 h-5 text-cyan-400" />
+                </div>
+                <div>
+                  <h1 className="text-sm font-black text-white uppercase tracking-wider">
+                    Question Review
+                  </h1>
+                  <p className="text-[10px] text-zinc-400 font-bold uppercase tracking-widest mt-0.5">
+                    Question {reviewIndex + 1} of {data.review.length}
+                  </p>
+                </div>
+              </div>
               <button
                 onClick={() => setShowReview(false)}
-                className="text-xs font-bold text-cyan-400 hover:text-cyan-300 flex items-center gap-1 cursor-pointer bg-[#0c0e1a]/85 border border-[#1e223c] px-3.5 py-2 rounded-xl transition-all"
+                className="text-xs font-bold text-cyan-400 hover:text-cyan-300 flex items-center gap-1.5 cursor-pointer bg-white/5 border border-white/10 px-4 py-2.5 rounded-xl transition-all hover:bg-white/8 hover:scale-[1.02]"
               >
-                <ArrowLeft className="w-3.5 h-3.5" />
+                <ArrowLeft className="w-4 h-4" />
                 <span>Back to Summary</span>
               </button>
             </div>
-            {/* Quick selector dots */}
-            <div className="mx-auto max-w-7xl mt-4 flex gap-2 overflow-x-auto pb-3.5 pr-1 scrollbar-thin scrollbar-track-white/5 scrollbar-thumb-white/10 whitespace-nowrap">
-              {data.review.map((r, i) => {
-                let cls = "shrink-0 w-9 h-9 rounded-xl text-xs font-black flex items-center justify-center border transition-all cursor-pointer ";
-                if (r.is_correct === true)
-                  cls += "bg-emerald-500/10 border-emerald-500/30 text-emerald-400 shadow-md shadow-emerald-500/5";
-                else if (r.is_correct === false)
-                  cls += "bg-red-500/10 border-red-500/30 text-red-400 shadow-md shadow-red-500/5";
-                else
-                  cls += "bg-[#0c0e1a] border-[#1e223c] text-slate-500 hover:border-slate-600";
-                if (i === reviewIndex) cls += " ring-2 ring-cyan-400 ring-offset-2 ring-offset-[#080a14] scale-105 border-transparent";
-                return (
-                  <button
-                    key={r.question_id}
-                    className={cls}
-                    onClick={() => navigateTo(i)}
-                  >
-                    {i + 1}
-                  </button>
-                );
-              })}
-            </div>
           </header>
 
-          <main className="px-4 py-6 md:py-8">
-            <div className="mx-auto max-w-7xl grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
+          <main className="px-6 py-8">
+            <div className="mx-auto max-w-7xl grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
               
               {/* Left/Center Pane: Question and Options */}
-              <div className="col-span-1 md:col-span-2 space-y-6">
-                <div className="rounded-3xl border border-[#1e223c] bg-[#0c0e1a]/95 p-6 md:p-8 shadow-2xl backdrop-blur-2xl">
+              <div className="lg:col-span-8 space-y-6">
+                <Card className="border border-white/5 bg-white/3 p-6 md:p-8 shadow-2xl relative overflow-hidden">
                   <AnimatePresence mode="wait" initial={false} custom={direction}>
                     <motion.div
                       key={reviewIndex}
@@ -275,80 +262,114 @@ export default function ResultPage({
                         </div>
                       )}
                       
-                      {/* Interactive Selection Output */}
-                      <div className="space-y-3.5">
+                      {/* Options */}
+                      <div className="space-y-4">
                         {Object.entries(item.options).map(([key, value]) => {
                           const isSelected = item.selected_option === key;
                           const isCorrectAnswer = showAnswerKey && item.correct_option === key;
-                          let border = "border-[#1e223c]";
-                          let bg = "bg-[#070913]/40";
+                          let border = "border-white/5";
+                          let bg = "bg-white/2 hover:bg-white/4";
                           let text = "text-slate-300";
                           let iconEl = null;
 
                           if (isCorrectAnswer) {
-                            border = "border-emerald-500 bg-gradient-to-r from-emerald-950/20 to-teal-950/20";
+                            border = "border-emerald-500/50 bg-emerald-500/5";
                             text = "text-emerald-300";
                             iconEl = <Check className="w-5 h-5 text-emerald-400 shrink-0" />;
                           } else if (isSelected && item.is_correct === false) {
-                            border = "border-red-500 bg-gradient-to-r from-red-950/20 to-rose-950/20";
+                            border = "border-red-500/50 bg-red-500/5";
                             text = "text-red-300";
                             iconEl = <X className="w-5 h-5 text-red-400 shrink-0" />;
                           } else if (isSelected) {
-                            border = "border-cyan-500 bg-gradient-to-r from-cyan-950/20 to-purple-950/20";
+                            border = "border-cyan-500/50 bg-cyan-500/5";
                             text = "text-cyan-300";
                           }
 
                           return (
-                            <div
+                            <motion.div
                               key={key}
+                              whileHover={{ y: -2, scale: 1.005 }}
                               className={`flex items-start gap-4 rounded-2xl border p-4.5 text-sm transition-all duration-200 ${border} ${bg} ${text}`}
                             >
-                              <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-xl text-xs font-black border transition-all ${
+                              <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-xl text-xs font-black border transition-all ${
                                 isCorrectAnswer 
                                   ? "bg-emerald-500 border-transparent text-[#080a14]" 
                                   : isSelected && item.is_correct === false 
                                     ? "bg-red-500 border-transparent text-[#080a14]" 
                                     : isSelected 
                                       ? "bg-cyan-500 border-transparent text-[#080a14]" 
-                                      : "border-[#1e223c] text-slate-500 bg-[#0c0e1a]"
+                                      : "border-white/10 text-slate-400 bg-white/5"
                               }`}>
                                 {key}
                               </span>
-                              <span className="flex-1 font-medium pt-0.5">
+                              <span className="flex-1 font-medium pt-1">
                                 <MarkdownRenderer content={value} />
                               </span>
                               {iconEl}
-                            </div>
+                            </motion.div>
                           );
                         })}
                       </div>
                     </motion.div>
                   </AnimatePresence>
-                </div>
+                </Card>
               </div>
-              {/* Right Pane: Tutor Explanation Notes */}
-              <div className="col-span-1 space-y-6 md:sticky md:top-40">
+
+              {/* Right Pane: Navigation, Explanation and Actions */}
+              <div className="lg:col-span-4 space-y-6 lg:sticky lg:top-24">
+                
+                {/* Clean Grid Selector Map */}
+                <Card className="border border-white/5 bg-white/3 p-5 shadow-xl">
+                  <div className="flex items-center gap-2 border-b border-white/5 pb-3 mb-4">
+                    <Target className="w-4 h-4 text-cyan-400" />
+                    <h3 className="text-xs font-black uppercase tracking-wider text-slate-400">Test Navigation</h3>
+                  </div>
+                  <div className="grid grid-cols-5 gap-2 max-h-[220px] overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-white/10">
+                    {data.review.map((r, i) => {
+                      let btnCls = "w-10 h-10 rounded-xl text-xs font-black flex items-center justify-center border transition-all cursor-pointer ";
+                      if (r.is_correct === true)
+                        btnCls += "bg-emerald-500/10 border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20";
+                      else if (r.is_correct === false)
+                        btnCls += "bg-red-500/10 border-red-500/30 text-red-400 hover:bg-red-500/20";
+                      else
+                        btnCls += "bg-white/3 border-white/5 text-slate-500 hover:bg-white/8 hover:text-slate-300";
+
+                      if (i === reviewIndex) {
+                        btnCls += " ring-2 ring-cyan-400 ring-offset-2 ring-offset-[#080a14] scale-105 border-transparent shadow-lg shadow-cyan-500/20";
+                      }
+                      
+                      return (
+                        <button
+                          key={r.question_id}
+                          className={btnCls}
+                          onClick={() => navigateTo(i)}
+                        >
+                          {i + 1}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </Card>
+
+                {/* Explanation Details */}
                 {item.explanation ? (
-                  <motion.div 
-                    initial={{ opacity: 0, y: 15 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="rounded-3xl border border-[#1e223c] bg-[#0c0e1a]/95 p-6 shadow-2xl backdrop-blur-2xl"
-                  >
-                    <div className="flex items-center gap-2 border-b border-[#1e223c] pb-3 mb-4">
-                      <div className="w-2 h-5 rounded-full bg-cyan-400" />
+                  <Card className="border border-white/5 bg-white/3 p-5 shadow-xl">
+                    <div className="flex items-center gap-2 border-b border-white/5 pb-3 mb-4">
+                      <div className="w-2 h-4 rounded-full bg-cyan-400" />
                       <h3 className="text-xs font-black uppercase tracking-wider text-slate-400">Tutor Explanation</h3>
                     </div>
                     <div className="text-sm leading-relaxed text-slate-300">
                       <MarkdownRenderer content={item.explanation} />
                     </div>
-                  </motion.div>
+                  </Card>
                 ) : (
-                  <div className="rounded-3xl border border-white/5 bg-white/3 p-6 text-center text-slate-400 text-xs leading-relaxed">
+                  <div className="rounded-3xl border border-white/5 bg-white/2 p-6 text-center text-slate-400 text-xs leading-relaxed">
                     <HelpCircle className="w-5 h-5 mx-auto mb-2 text-slate-500" />
                     No explanation has been provided for this question.
                   </div>
                 )}
 
+                {/* Tutor Request CTA */}
                 <button
                   onClick={() => setReviewRequestOpen(true)}
                   className="w-full rounded-2xl border border-amber-500/20 bg-amber-500/5 py-4 text-xs font-black uppercase tracking-widest text-amber-400 hover:bg-amber-500/10 hover:border-amber-500/40 transition-all cursor-pointer flex items-center justify-center gap-2.5"
@@ -362,19 +383,19 @@ export default function ResultPage({
           </main>
 
           {/* Bottom Control Bar */}
-          <footer className="fixed bottom-0 left-0 md:left-[68px] right-0 z-30 border-t border-[#1e223c] bg-[#0c0e1a]/95 px-4 py-4 backdrop-blur-2xl safe-bottom">
-            <div className="mx-auto max-w-7xl flex items-center justify-between gap-3">
+          <footer className="fixed bottom-0 left-0 md:left-[68px] right-0 z-30 border-t border-[#1e223c] bg-[#080a14]/90 px-6 py-4.5 backdrop-blur-xl safe-bottom">
+            <div className="mx-auto max-w-7xl flex items-center justify-between gap-4">
               <motion.button
                 whileTap={{ scale: 0.97 }}
                 onClick={() => navigateTo(Math.max(0, reviewIndex - 1))}
                 disabled={reviewIndex === 0}
-                className="flex items-center gap-1.5 rounded-xl border border-[#1e223c] bg-[#0f1120] px-4 py-3.5 text-xs font-bold uppercase tracking-wider text-slate-300 hover:bg-[#1e223c] transition-all disabled:opacity-30 disabled:pointer-events-none cursor-pointer"
+                className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-5 py-3.5 text-xs font-bold uppercase tracking-wider text-slate-300 hover:bg-white/8 transition-all disabled:opacity-30 disabled:pointer-events-none cursor-pointer"
               >
                 <ChevronLeft className="w-4 h-4" />
                 <span>Prev</span>
               </motion.button>
               
-              <div className="text-xs font-black uppercase tracking-widest border border-[#1e223c] px-4 py-2 rounded-xl bg-[#070913]/60">
+              <div className="text-xs font-black uppercase tracking-widest border border-white/10 px-5 py-2.5 rounded-xl bg-white/2">
                 {userCorrect ? (
                   <span className="text-emerald-400">Correct Answer</span>
                 ) : item.is_correct === null ? (
@@ -389,7 +410,7 @@ export default function ResultPage({
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.97 }}
                   onClick={() => setShowReview(false)}
-                  className="rounded-xl bg-gradient-to-r from-cyan-500 to-purple-600 px-5 py-3.5 text-xs font-bold uppercase tracking-wider text-white shadow-lg cursor-pointer"
+                  className="rounded-xl bg-gradient-to-r from-cyan-500 to-purple-600 px-6 py-3.5 text-xs font-bold uppercase tracking-wider text-white shadow-lg cursor-pointer"
                 >
                   Summary Report
                 </motion.button>
@@ -397,7 +418,7 @@ export default function ResultPage({
                 <motion.button
                   whileTap={{ scale: 0.97 }}
                   onClick={() => navigateTo(reviewIndex + 1)}
-                  className="flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-cyan-500 to-purple-600 px-5 py-3.5 text-xs font-bold uppercase tracking-wider text-white shadow-lg cursor-pointer"
+                  className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-cyan-500 to-purple-600 px-6 py-3.5 text-xs font-bold uppercase tracking-wider text-white shadow-lg cursor-pointer"
                 >
                   <span>Next</span>
                   <ChevronRight className="w-4 h-4" />
@@ -421,7 +442,7 @@ export default function ResultPage({
                   animate={{ scale: 1, opacity: 1 }}
                   exit={{ scale: 0.95, opacity: 0 }}
                   onClick={(e) => e.stopPropagation()}
-                  className="w-full max-w-md rounded-3xl border border-[#1e223c] bg-[#0c0e1a] p-6 shadow-2xl"
+                  className="w-full max-w-md rounded-3xl border border-white/10 bg-white/5 backdrop-blur-xl p-6 shadow-2xl glossy-border"
                 >
                   <h3 className="text-sm font-black text-white uppercase tracking-wider mb-2">Request Question Review</h3>
                   <p className="text-[10px] text-slate-500 font-bold uppercase mb-4">A tutor will check and update your score if approved</p>
@@ -429,12 +450,12 @@ export default function ResultPage({
                     value={reviewReason}
                     onChange={(e) => setReviewReason(e.target.value)}
                     placeholder="Provide a reason or write down your question for the tutor..."
-                    className="w-full h-36 rounded-2xl border border-[#2b3052] bg-[#070913] px-4 py-3 text-sm text-white placeholder-zinc-600 focus:border-cyan-500 focus:outline-none resize-none"
+                    className="w-full h-36 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder-zinc-600 focus:border-cyan-500 focus:outline-none resize-none"
                   />
                   <div className="flex gap-3 mt-5">
                     <button
                       onClick={() => setReviewRequestOpen(false)}
-                      className="flex-1 rounded-xl border border-[#2b3052] bg-[#0f1120] py-3.5 text-xs font-bold uppercase tracking-wider text-zinc-400 hover:text-white transition-colors cursor-pointer"
+                      className="flex-1 rounded-xl border border-white/10 bg-white/5 py-3.5 text-xs font-bold uppercase tracking-wider text-zinc-400 hover:text-white transition-colors cursor-pointer"
                     >
                       Cancel
                     </button>
