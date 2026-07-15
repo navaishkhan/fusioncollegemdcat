@@ -11,6 +11,7 @@ from app.models import (
     AttemptStatus,
     Batch,
     Enrollment,
+    MarkingMode,
     Question,
     Test,
     TestAssignment,
@@ -30,6 +31,7 @@ from app.schemas import (
     TestResponse,
 )
 from app.services.grading import (
+    _update_batch_ranks,
     build_question_order,
     build_review_payload,
     create_test_with_questions,
@@ -40,12 +42,61 @@ from app.services.grading import (
 router = APIRouter(prefix="/tests", tags=["tests"])
 
 
+def _question_payload(question_map: dict, qid: str) -> dict:
+    q = question_map[qid]
+    return {
+        "id": qid,
+        "subject": q.subject.value,
+        "topic": q.topic,
+        "stem": q.stem,
+        "image_url": q.image_url,
+        "options": q.options,
+    }
+
+
+def _attempt_result(
+    db: Session,
+    attempt: TestAttempt,
+    *,
+    include_review: bool = True,
+    reveal_answers: bool = True,
+) -> AttemptResultResponse:
+    attempt = (
+        db.query(TestAttempt)
+        .options(
+            joinedload(TestAttempt.student),
+            joinedload(TestAttempt.assignment).joinedload(TestAssignment.test),
+            joinedload(TestAttempt.answers),
+        )
+        .filter(TestAttempt.id == attempt.id)
+        .first()
+    )
+    test = attempt.assignment.test
+    review = (
+        build_review_payload(db, attempt, reveal_answers=reveal_answers)
+        if include_review and attempt.status == AttemptStatus.SUBMITTED
+        else None
+    )
+    return AttemptResultResponse(
+        attempt_id=attempt.id,
+        status=attempt.status,
+        total_score=attempt.total_score,
+        subject_breakdown=attempt.subject_breakdown,
+        rank_in_batch=attempt.rank_in_batch,
+        review=review,
+        student_name=attempt.student.full_name,
+        test_title=test.title,
+        submitted_at=attempt.submitted_at,
+        marking_mode=test.marking_mode,
+    )
+
+
 @router.get("/tutor-stats")
 def tutor_stats(
     db: Session = Depends(get_db),
     user: User = Depends(require_roles(UserRole.ADMIN, UserRole.TUTOR)),
 ):
-    from app.models import MarkingMode
+    from app.models import MarkingMode as MM
     
     question_count = db.query(Question).filter(Question.created_by_id == user.id, Question.is_active.is_(True)).count()
     test_count = db.query(Test).filter(Test.created_by_id == user.id).count()
@@ -77,10 +128,18 @@ def tutor_stats(
         .join(Test)
         .filter(
             Test.created_by_id == user.id,
-            Test.marking_mode == MarkingMode.MANUAL,
+            Test.marking_mode == MM.MANUAL,
             TestAttempt.status == AttemptStatus.SUBMITTED,
             TestAttempt.total_score.is_(None),
         )
+        .count()
+    )
+
+    from app.models import QuestionReview
+
+    pending_question_reviews = (
+        db.query(QuestionReview)
+        .filter(QuestionReview.status == "pending")
         .count()
     )
 
@@ -90,6 +149,7 @@ def tutor_stats(
         "submission_count": submission_count,
         "enrolled_students": batch_count,
         "pending_manual_grading": pending_manual_grading,
+        "pending_question_reviews": pending_question_reviews,
         "recent_submissions": [
             {
                 "attempt_id": str(s.id),
@@ -191,6 +251,7 @@ def update_test(
     test.negative_marking = payload.negative_marking
     test.randomize_order = payload.randomize_order
     test.show_review_after_submit = payload.show_review_after_submit
+    test.marking_mode = payload.marking_mode
 
     # Replace questions if provided
     if payload.question_ids or payload.auto_generate:
@@ -284,6 +345,48 @@ def my_assignments(
     ]
 
 
+@router.get("/attempts/active")
+def active_attempt(
+    assignment_id: UUID,
+    db: Session = Depends(get_db),
+    user: User = Depends(require_roles(UserRole.STUDENT)),
+):
+    """Check if student has an in-progress attempt for this assignment."""
+    existing = (
+        db.query(TestAttempt)
+        .filter(
+            TestAttempt.assignment_id == assignment_id,
+            TestAttempt.student_id == user.id,
+        )
+        .first()
+    )
+    if not existing:
+        return {"active": False}
+
+    if existing.status != AttemptStatus.IN_PROGRESS:
+        return {
+            "active": False,
+            "submitted": True,
+            "attempt_id": str(existing.id),
+        }
+
+    now = datetime.now(timezone.utc)
+    if now >= existing.server_deadline_at:
+        grade_attempt(db, existing)
+        return {
+            "active": False,
+            "submitted": True,
+            "attempt_id": str(existing.id),
+            "timed_out": True,
+        }
+
+    return {
+        "active": True,
+        "attempt_id": str(existing.id),
+        "server_deadline_at": existing.server_deadline_at.isoformat(),
+    }
+
+
 @router.post("/attempts/start", response_model=AttemptStartResponse)
 def start_attempt(
     assignment_id: UUID,
@@ -317,11 +420,42 @@ def start_attempt(
 
     existing = (
         db.query(TestAttempt)
+        .options(
+            joinedload(TestAttempt.answers),
+            joinedload(TestAttempt.assignment)
+            .joinedload(TestAssignment.test)
+            .joinedload(Test.questions)
+            .joinedload(TestQuestion.question),
+        )
         .filter(TestAttempt.assignment_id == assignment_id, TestAttempt.student_id == user.id)
         .first()
     )
     if existing:
-        raise HTTPException(status_code=400, detail="Attempt already exists")
+        if existing.status != AttemptStatus.IN_PROGRESS:
+            raise HTTPException(status_code=400, detail="Attempt already submitted")
+        now = datetime.now(timezone.utc)
+        if now >= existing.server_deadline_at:
+            grade_attempt(db, existing)
+            raise HTTPException(status_code=400, detail="Time expired. Your test was auto-submitted.")
+        test = existing.assignment.test
+        question_map = {str(tq.question_id): tq.question for tq in test.questions}
+        order = existing.question_order or [str(tq.question_id) for tq in sorted(test.questions, key=lambda x: x.sort_order)]
+        saved = [
+            {
+                "question_id": str(a.question_id),
+                "selected_option": a.selected_option,
+                "marked_for_review": a.marked_for_review,
+            }
+            for a in existing.answers
+        ]
+        return AttemptStartResponse(
+            attempt_id=existing.id,
+            server_deadline_at=existing.server_deadline_at,
+            questions=[_question_payload(question_map, qid) for qid in order if qid in question_map],
+            saved_answers=saved,
+            marking_mode=test.marking_mode,
+            resumed=True,
+        )
 
     test = assignment.test
     order = build_question_order(test, test.randomize_order)
@@ -345,21 +479,14 @@ def start_attempt(
     db.commit()
     db.refresh(attempt)
 
-    questions = [
-        {
-            "id": qid,
-            "subject": question_map[qid].subject.value,
-            "topic": question_map[qid].topic,
-            "stem": question_map[qid].stem,
-            "options": question_map[qid].options,
-        }
-        for qid in order
-    ]
+    questions = [_question_payload(question_map, qid) for qid in order]
 
     return AttemptStartResponse(
         attempt_id=attempt.id,
         server_deadline_at=attempt.server_deadline_at,
         questions=questions,
+        marking_mode=test.marking_mode,
+        resumed=False,
     )
 
 
@@ -400,27 +527,19 @@ def submit_attempt(
     if not attempt:
         raise HTTPException(status_code=404, detail="Attempt not found")
     if attempt.status == AttemptStatus.SUBMITTED:
-        return AttemptResultResponse(
-            attempt_id=attempt.id,
-            status=attempt.status,
-            total_score=attempt.total_score,
-            subject_breakdown=attempt.subject_breakdown,
-            rank_in_batch=attempt.rank_in_batch,
-            review=build_review_payload(db, attempt),
+        test = attempt.assignment.test
+        reveal = not (
+            test.marking_mode.value == "manual" and attempt.total_score is None
         )
+        return _attempt_result(db, attempt, reveal_answers=reveal)
 
     if datetime.now(timezone.utc) > attempt.server_deadline_at and attempt.status == AttemptStatus.IN_PROGRESS:
         attempt.status = AttemptStatus.TIMED_OUT
 
     graded = grade_attempt(db, attempt)
-    return AttemptResultResponse(
-        attempt_id=graded.id,
-        status=graded.status,
-        total_score=graded.total_score,
-        subject_breakdown=graded.subject_breakdown,
-        rank_in_batch=graded.rank_in_batch,
-        review=build_review_payload(db, graded),
-    )
+    test = graded.assignment.test
+    reveal = not (test.marking_mode.value == "manual" and graded.total_score is None)
+    return _attempt_result(db, graded, reveal_answers=reveal)
 
 
 @router.get("/attempts/{attempt_id}/result", response_model=AttemptResultResponse)
@@ -440,14 +559,8 @@ def attempt_result(
         if not child or child.parent_id != user.id:
             raise HTTPException(status_code=403, detail="Forbidden")
 
-    return AttemptResultResponse(
-        attempt_id=attempt.id,
-        status=attempt.status,
-        total_score=attempt.total_score,
-        subject_breakdown=attempt.subject_breakdown,
-        rank_in_batch=attempt.rank_in_batch,
-        review=build_review_payload(db, attempt) if attempt.status == AttemptStatus.SUBMITTED else None,
-    )
+    reveal = user.role in (UserRole.ADMIN, UserRole.TUTOR)
+    return _attempt_result(db, attempt, reveal_answers=reveal)
 
 
 @router.post("/attempts/{attempt_id}/manual-grade")
@@ -520,14 +633,7 @@ def manual_grade_attempt(
     db.commit()
     db.refresh(attempt)
     
-    return AttemptResultResponse(
-        attempt_id=attempt.id,
-        status=attempt.status,
-        total_score=attempt.total_score,
-        subject_breakdown=attempt.subject_breakdown,
-        rank_in_batch=attempt.rank_in_batch,
-        review=build_review_payload(db, attempt),
-    )
+    return _attempt_result(db, attempt, reveal_answers=True)
 
 
 @router.get("/pending-manual-grading")
@@ -536,14 +642,14 @@ def pending_manual_grading(
     user: User = Depends(require_roles(UserRole.ADMIN, UserRole.TUTOR)),
 ):
     """List attempts that are submitted but not yet manually graded (for manual marking mode tests)"""
-    from app.models import MarkingMode
-    
+    from app.models import MarkingMode as MM
+
     attempts = (
         db.query(TestAttempt)
         .join(TestAssignment)
         .join(Test)
         .filter(
-            Test.marking_mode == MarkingMode.MANUAL,
+            Test.marking_mode == MM.MANUAL,
             TestAttempt.status == AttemptStatus.SUBMITTED,
             TestAttempt.total_score.is_(None),
         )

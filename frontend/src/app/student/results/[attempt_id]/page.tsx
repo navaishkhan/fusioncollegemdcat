@@ -24,11 +24,13 @@ import MarkdownRenderer from "@/components/MarkdownRenderer";
 interface ReviewItem {
   question_id: string;
   stem: string;
+  image_url?: string | null;
   options: Record<string, string>;
   selected_option: string | null;
-  correct_option: string;
+  correct_option: string | null;
   explanation: string | null;
   is_correct: boolean | null;
+  marked_for_review?: boolean;
 }
 
 interface SubjectStat {
@@ -45,6 +47,7 @@ interface ResultData {
   subject_breakdown: Record<string, SubjectStat> | null;
   rank_in_batch: number | null;
   review: ReviewItem[] | null;
+  marking_mode?: "auto" | "manual";
 }
 
 export default function ResultPage({
@@ -63,6 +66,7 @@ export default function ResultPage({
   const [reviewRequestOpen, setReviewRequestOpen] = useState(false);
   const [reviewReason, setReviewReason] = useState("");
   const [submittingReview, setSubmittingReview] = useState(false);
+  const [reviewSuccess, setReviewSuccess] = useState<string | null>(null);
 
   useEffect(() => {
     apiFetch<ResultData>(`/api/tests/attempts/${attempt_id}/result`)
@@ -86,6 +90,8 @@ export default function ResultPage({
       });
       setReviewRequestOpen(false);
       setReviewReason("");
+      setReviewSuccess("Your review request was submitted. A tutor will respond soon.");
+      setTimeout(() => setReviewSuccess(null), 5000);
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : "Failed to submit review request");
     } finally {
@@ -138,6 +144,12 @@ export default function ResultPage({
       )
     : 0;
 
+  const pendingManualGrade =
+    data.marking_mode === "manual" && data.total_score === null;
+  const answersRevealed =
+    !pendingManualGrade &&
+    data.review?.some((r) => r.correct_option != null) !== false;
+
   const reviewTransitionVariants = {
     initial: (dir: number) => ({
       x: dir * 40,
@@ -170,10 +182,16 @@ export default function ResultPage({
 
     const isLast = reviewIndex === data.review.length - 1;
     const userCorrect = item.is_correct === true;
+    const showAnswerKey = item.correct_option != null;
 
     return (
       <AuthGuard roles={["student", "parent"]}>
         <div className="min-h-screen bg-[#080a14] bg-grid-glow bg-dot-pattern pb-32 safe-top safe-bottom">
+          {reviewSuccess && (
+            <div className="fixed top-4 left-4 right-4 z-50 mx-auto max-w-md rounded-xl border border-emerald-500/30 bg-emerald-950/90 px-4 py-3 text-xs font-semibold text-emerald-400 shadow-lg">
+              {reviewSuccess}
+            </div>
+          )}
           <header className="sticky top-0 z-20 border-b border-[#1e223c] bg-[#080a14]/80 px-4 py-3 backdrop-blur-xl">
             <div className="mx-auto max-w-2xl flex items-center justify-between">
               <h1 className="text-sm font-black text-white uppercase tracking-widest">Question Review</h1>
@@ -209,8 +227,8 @@ export default function ResultPage({
             </div>
           </header>
 
-          <main className="px-4 py-6 relative">
-            <div className="mx-auto max-w-2xl min-h-[300px]">
+          <main className="px-4 py-6">
+            <div className="mx-auto max-w-2xl">
               <AnimatePresence mode="wait" initial={false} custom={direction}>
                 <motion.div
                   key={reviewIndex}
@@ -219,16 +237,35 @@ export default function ResultPage({
                   initial="initial"
                   animate="active"
                   exit="exit"
-                  className="w-full absolute"
                 >
+                  {!showAnswerKey && (
+                    <div className="mb-4 rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 text-xs text-amber-400">
+                      Answers and explanations will appear after your tutor finishes manual grading.
+                    </div>
+                  )}
+
+                  {item.marked_for_review && (
+                    <div className="mb-3 inline-flex items-center gap-1 rounded-lg bg-amber-500/10 border border-amber-500/20 px-2 py-1 text-[10px] font-bold text-amber-400">
+                      You marked this for review during the exam
+                    </div>
+                  )}
+
                   <div className="mb-6 text-base font-medium leading-relaxed text-slate-200">
                     <MarkdownRenderer content={item.stem} />
                   </div>
+
+                  {item.image_url && (
+                    <img
+                      src={item.image_url}
+                      alt="Question diagram"
+                      className="mb-6 max-w-full rounded-xl border border-[#2b3052]"
+                    />
+                  )}
                   
                   <div className="space-y-3">
                     {Object.entries(item.options).map(([key, value]) => {
                       const isSelected = item.selected_option === key;
-                      const isCorrectAnswer = item.correct_option === key;
+                      const isCorrectAnswer = showAnswerKey && item.correct_option === key;
                       let border = "border-[#1e223c]";
                       let bg = "bg-[#0f1224]/60";
                       let text = "text-slate-300";
@@ -239,11 +276,15 @@ export default function ResultPage({
                         bg = "bg-emerald-500/10";
                         text = "text-emerald-400";
                         iconEl = <Check className="w-4 h-4 text-emerald-400 shrink-0" />;
-                      } else if (isSelected && !item.is_correct) {
+                      } else if (isSelected && item.is_correct === false) {
                         border = "border-red-500/50";
                         bg = "bg-red-500/10";
                         text = "text-red-400";
                         iconEl = <X className="w-4 h-4 text-red-400 shrink-0" />;
+                      } else if (isSelected) {
+                        border = "border-cyan-500/50";
+                        bg = "bg-cyan-500/10";
+                        text = "text-cyan-300";
                       }
 
                       return (
@@ -254,7 +295,7 @@ export default function ResultPage({
                           <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-black border border-current">
                             {key}
                           </span>
-                          <span className="flex-1 font-medium pointer-events-none">
+                          <span className="flex-1 font-medium">
                             <MarkdownRenderer content={value} />
                           </span>
                           {iconEl}
@@ -272,9 +313,9 @@ export default function ResultPage({
                       <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
                         Explanation
                       </p>
-                      <p className="mt-1 text-sm leading-relaxed text-slate-300">
-                        {item.explanation}
-                      </p>
+                      <div className="mt-1 text-sm leading-relaxed text-slate-300">
+                        <MarkdownRenderer content={item.explanation} />
+                      </div>
                     </motion.div>
                   )}
                 </motion.div>
@@ -401,6 +442,15 @@ export default function ResultPage({
         </header>
 
         <main className="mx-auto max-w-2xl px-4 py-6">
+          {pendingManualGrade && (
+            <div className="mb-4 rounded-2xl border border-amber-500/30 bg-amber-500/10 p-4 text-center">
+              <p className="text-sm font-bold text-amber-400">Pending Tutor Grading</p>
+              <p className="mt-1 text-xs text-amber-400/80">
+                Your submission is saved. Your score and answer explanations will appear once your tutor completes manual grading.
+              </p>
+            </div>
+          )}
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
             {/* Score card (Flip Animation) */}
             <div className="md:col-span-2 relative" style={{ perspective: 1000 }} onClick={() => setIsScoreFlipped(!isScoreFlipped)}>
@@ -414,11 +464,13 @@ export default function ResultPage({
                 <div style={{ backfaceVisibility: "hidden" }} className="w-full h-full">
                   <Card className="text-center relative overflow-hidden group h-full flex flex-col justify-center items-center py-8">
                     <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-cyan-500/5 to-violet-500/5 rounded-full blur-2xl pointer-events-none" />
-                    <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Total Score</p>
-                    <p className="text-5xl font-black text-gradient tracking-tight">
-                      {data.total_score?.toFixed(1) ?? "—"}
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">
+                      {pendingManualGrade ? "Score" : "Total Score"}
                     </p>
-                    {data.rank_in_batch != null && (
+                    <p className="text-5xl font-black text-gradient tracking-tight">
+                      {pendingManualGrade ? "—" : data.total_score?.toFixed(1) ?? "—"}
+                    </p>
+                    {!pendingManualGrade && data.rank_in_batch != null && (
                       <div className="mt-4 inline-flex items-center gap-1 rounded-full bg-amber-500/10 border border-amber-500/20 px-3 py-1 text-xs font-bold text-amber-400">
                         <Award className="w-3.5 h-3.5" />
                         <span>Batch Rank: #{data.rank_in_batch}</span>
@@ -456,6 +508,7 @@ export default function ResultPage({
             </div>
 
             {/* General metrics */}
+            {!pendingManualGrade && (
             <div className="grid grid-cols-3 md:grid-cols-1 gap-3">
               <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/5 p-4 text-center flex flex-col justify-center">
                 <div className="text-xl font-black text-emerald-400">{correctCount}</div>
@@ -470,10 +523,11 @@ export default function ResultPage({
                 <div className="text-[9px] font-bold uppercase tracking-widest text-slate-500/80 mt-1">Skipped</div>
               </div>
             </div>
+            )}
           </div>
 
           {/* Subject breakdown */}
-          {data.subject_breakdown && (
+          {data.subject_breakdown && !pendingManualGrade && (
             <div className="mb-8 space-y-3.5">
               <h2 className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5 px-1">
                 <Target className="w-3.5 h-3.5 text-violet-400" />
@@ -521,7 +575,9 @@ export default function ResultPage({
               }}
               className="w-full rounded-2xl bg-gradient-to-r from-cyan-500 to-violet-600 py-4 text-sm font-bold text-white shadow-lg shadow-cyan-500/10 cursor-pointer"
             >
-              Review Incorrect & Correct Answers
+              {answersRevealed
+                ? "Review All Questions & Explanations"
+                : "Review Your Submitted Answers"}
             </motion.button>
           )}
         </main>

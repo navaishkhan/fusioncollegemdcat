@@ -14,6 +14,7 @@ interface TestItem {
   duration_minutes: number;
   question_count: number;
   negative_marking: number;
+  marking_mode: "auto" | "manual";
 }
 
 export default function TutorTestsPage() {
@@ -169,6 +170,13 @@ export default function TutorTestsPage() {
                           <span>{t.question_count} questions</span>
                           <span>{t.duration_minutes} min</span>
                           <span>−{Math.abs(t.negative_marking)} wrong</span>
+                          <span className={`px-2 py-0.5 rounded-md font-semibold text-[10px] uppercase tracking-wider ${
+                            t.marking_mode === "manual" 
+                              ? "bg-amber-500/10 text-amber-400 border border-amber-500/20" 
+                              : "bg-cyan-500/10 text-cyan-400 border border-cyan-500/20"
+                          }`}>
+                            {t.marking_mode} Marking
+                          </span>
                         </div>
                       </div>
                       {!selectMode && (

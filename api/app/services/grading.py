@@ -169,24 +169,38 @@ def save_answers(db: Session, attempt: TestAttempt, updates: list[AnswerUpdate])
     db.commit()
 
 
-def build_review_payload(db: Session, attempt: TestAttempt) -> list[dict] | None:
+def build_review_payload(
+    db: Session,
+    attempt: TestAttempt,
+    *,
+    reveal_answers: bool = True,
+) -> list[dict] | None:
     test = attempt.assignment.test
     if not test.show_review_after_submit:
         return None
 
+    hide_answers = (
+        not reveal_answers
+        and test.marking_mode.value == "manual"
+        and attempt.total_score is None
+        and attempt.status == AttemptStatus.SUBMITTED
+    )
+
     answers = {a.question_id: a for a in attempt.answers}
     review = []
-    for tq in test.questions:
+    for tq in sorted(test.questions, key=lambda x: x.sort_order):
         q = tq.question
         ans = answers.get(q.id)
         review.append(
             {
                 "question_id": str(q.id),
                 "stem": q.stem,
+                "image_url": q.image_url,
                 "options": q.options,
                 "selected_option": ans.selected_option if ans else None,
-                "correct_option": q.correct_option,
-                "explanation": q.explanation,
+                "marked_for_review": ans.marked_for_review if ans else False,
+                "correct_option": None if hide_answers else q.correct_option,
+                "explanation": None if hide_answers else q.explanation,
                 "is_correct": ans.is_correct if ans else None,
             }
         )

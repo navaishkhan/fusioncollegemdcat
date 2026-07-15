@@ -213,7 +213,20 @@ def get_pending_reviews(
         .order_by(QuestionReview.created_at.desc())
         .all()
     )
-    return reviews
+    return [
+        {
+            "id": str(r.id),
+            "student_id": str(r.student_id),
+            "student_name": r.student.full_name,
+            "question_id": str(r.question_id),
+            "question_stem": r.question.stem,
+            "question_subject": r.question.subject.value,
+            "reason": r.reason,
+            "status": r.status,
+            "created_at": r.created_at.isoformat(),
+        }
+        for r in reviews
+    ]
 
 
 @router.patch("/reviews/{review_id}")

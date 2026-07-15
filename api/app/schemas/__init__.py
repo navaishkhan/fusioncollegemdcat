@@ -149,6 +149,9 @@ class AttemptStartResponse(BaseModel):
     attempt_id: UUID
     server_deadline_at: datetime
     questions: list[dict]
+    saved_answers: list[dict] | None = None
+    marking_mode: MarkingMode = MarkingMode.AUTO
+    resumed: bool = False
 
 
 class AnswerUpdate(BaseModel):
@@ -169,6 +172,10 @@ class AttemptResultResponse(BaseModel):
     subject_breakdown: dict | None
     rank_in_batch: int | None
     review: list[dict] | None = None
+    student_name: str | None = None
+    test_title: str | None = None
+    submitted_at: datetime | None = None
+    marking_mode: MarkingMode | None = None
 
 
 class ChangePasswordRequest(BaseModel):

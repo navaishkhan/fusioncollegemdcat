@@ -18,17 +18,21 @@ import {
   LogOut,
   Menu,
   X,
-  Loader2
+  Loader2,
+  ClipboardCheck,
+  MessageSquare,
 } from "lucide-react";
-import { dashboardPath, getStoredUser, clearAuth } from "@/lib/api";
+import { dashboardPath, getStoredUser, clearAuth, apiFetch } from "@/lib/api";
 
 const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
   Home: Home,
   Users: Users,
   Bank: BookOpen,
-  Tests: FileText,
+  Tests:   FileText,
   Batches: Layers,
   Analytics: BarChart3,
+  Grading: ClipboardCheck,
+  Reviews: MessageSquare,
   Profile: User,
   History: History,
   Progress: TrendingUp,
@@ -49,6 +53,8 @@ const NAV: Record<string, { href: string; label: string }[]> = {
     { href: "/tutor/questions", label: "Bank" },
     { href: "/tutor/tests", label: "Tests" },
     { href: "/tutor/batches", label: "Batches" },
+    { href: "/tutor/grading", label: "Grading" },
+    { href: "/tutor/reviews", label: "Reviews" },
     { href: "/tutor/analytics", label: "Analytics" },
     { href: "/profile", label: "Profile" },
   ],
@@ -96,6 +102,8 @@ const SECONDARY_NAV: Record<string, { href: string; label: string }[]> = {
   ],
   tutor: [
     { href: "/tutor/batches", label: "Batches" },
+    { href: "/tutor/grading", label: "Grading" },
+    { href: "/tutor/reviews", label: "Reviews" },
     { href: "/tutor/analytics", label: "Analytics" },
     { href: "/profile", label: "Profile" },
   ],
@@ -108,17 +116,31 @@ const SECONDARY_NAV: Record<string, { href: string; label: string }[]> = {
 };
 
 export default function MobileNav() {
-  const pathname = usePathname();
+  const router = useRouter();
   const [menuOpen, setMenuOpen] = useState(false);
-  const user = getStoredUser();
-  if (!user) return null;
+  const [user, setUser] = useState<any>({ role: "student" });
+  const [pathname, setPathname] = useState("");
+  const [stats, setStats] = useState<{ pending_question_reviews?: number; pending_manual_grading?: number } | null>(null);
 
-  const allItems = NAV[user.role] || [];
-  const primaryItems = PRIMARY_NAV[user.role] || [];
+  useEffect(() => {
+    setPathname(window.location.pathname);
+    const u = getStoredUser();
+    if (u) {
+      setUser(u);
+      if (u.role === "admin" || u.role === "tutor") {
+        apiFetch<any>("/api/tests/tutor-stats")
+          .then((res) => setStats(res))
+          .catch(() => {});
+      }
+    }
+  }, []);
   const secondaryItems = SECONDARY_NAV[user.role] || [];
 
   // Don't show nav on exam pages
   if (pathname.includes("/student/tests/") && pathname !== "/student/tests") return null;
+
+  const allItems = NAV[user.role] || [];
+  const primaryItems = PRIMARY_NAV[user.role] || [];
 
   const handleLogout = () => {
     clearAuth();
@@ -148,7 +170,19 @@ export default function MobileNav() {
                     transition={{ type: "spring", stiffness: 380, damping: 30 }}
                   />
                 )}
-                <Icon className={`w-5 h-5 mb-1 relative z-10 ${active ? "text-cyan-400" : "text-slate-400"}`} />
+                <div className="relative">
+                  <Icon className={`w-5 h-5 mb-1 relative z-10 ${active ? "text-cyan-400" : "text-slate-400"}`} />
+                  {item.label === "Reviews" && stats?.pending_question_reviews ? (
+                    <span className="absolute -top-1 -right-2 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-amber-500 text-[8px] font-bold text-white ring-2 ring-[#0c0e1a]">
+                      {stats.pending_question_reviews}
+                    </span>
+                  ) : null}
+                  {item.label === "Grading" && stats?.pending_manual_grading ? (
+                    <span className="absolute -top-1 -right-2 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-rose-500 text-[8px] font-bold text-white ring-2 ring-[#0c0e1a]">
+                      {stats.pending_manual_grading}
+                    </span>
+                  ) : null}
+                </div>
                 <span className="relative z-10 text-[9px] tracking-tight">{item.label}</span>
               </Link>
             );
@@ -280,7 +314,17 @@ export default function MobileNav() {
                   <div className={`relative z-10 flex h-8 w-8 shrink-0 items-center justify-center rounded-xl transition-all duration-300 ${active ? 'bg-cyan-500/20 text-cyan-400 shadow-inner' : 'bg-[#16192b] text-slate-400 group-hover:bg-[#1e223c] group-hover:text-cyan-300'}`}>
                     <Icon className={`w-4 h-4 ${active ? "animate-pulse" : ""}`} />
                   </div>
-                  <span className="relative z-10 transition-transform duration-300 group-hover:translate-x-0.5">{item.label}</span>
+                  <span className="relative z-10 transition-transform duration-300 group-hover:translate-x-0.5 flex-1">{item.label}</span>
+                  {item.label === "Reviews" && stats?.pending_question_reviews ? (
+                    <span className="relative z-10 flex h-5 min-w-[20px] items-center justify-center rounded-full bg-amber-500/20 border border-amber-500/30 px-1.5 text-[10px] font-bold text-amber-400">
+                      {stats.pending_question_reviews}
+                    </span>
+                  ) : null}
+                  {item.label === "Grading" && stats?.pending_manual_grading ? (
+                    <span className="relative z-10 flex h-5 min-w-[20px] items-center justify-center rounded-full bg-rose-500/20 border border-rose-500/30 px-1.5 text-[10px] font-bold text-rose-400">
+                      {stats.pending_manual_grading}
+                    </span>
+                  ) : null}
                 </Link>
               );
             })}

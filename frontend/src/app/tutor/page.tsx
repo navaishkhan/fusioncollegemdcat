@@ -12,6 +12,7 @@ interface TutorStats {
   submission_count: number;
   enrolled_students: number;
   pending_manual_grading: number;
+  pending_question_reviews: number;
   recent_submissions: {
     attempt_id: string;
     student_name: string;
