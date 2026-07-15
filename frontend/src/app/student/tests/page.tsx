@@ -113,14 +113,10 @@ export default function StudentTestsPage() {
   return (
     <AuthGuard roles={["student"]}>
       <div
-        className="min-h-screen bg-[#030409]"
-        style={{
-          backgroundImage:
-            "radial-gradient(at 10% 20%, rgba(6,182,212,0.06) 0px, transparent 55%), radial-gradient(at 85% 80%, rgba(124,58,237,0.06) 0px, transparent 55%)",
-        }}
+        className="min-h-screen bg-[#080a14] bg-grid-glow bg-dot-pattern"
       >
         {/* ── Header ── */}
-        <header className="sticky top-0 z-20 bg-[#030409]/80 backdrop-blur-xl border-b border-white/5 px-4 py-4">
+        <header className="sticky top-0 z-20 bg-[#080a14]/80 backdrop-blur-xl border-b border-white/5 px-4 py-4">
           <div className="max-w-3xl mx-auto">
             <div className="flex items-center justify-between mb-4">
               <div>

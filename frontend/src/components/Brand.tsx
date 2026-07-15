@@ -45,8 +45,8 @@ export function PageShell({
   title?: string;
 }) {
   return (
-    <div className="min-h-screen bg-brand-bg bg-noise safe-top safe-bottom">
-      <header className="sticky top-0 z-20 border-b border-brand-border bg-[#000000]/60 px-4 py-3 backdrop-blur-3xl shadow-sm">
+    <div className="min-h-screen bg-[#080a14] bg-grid-glow bg-dot-pattern safe-top safe-bottom">
+      <header className="sticky top-0 z-20 border-b border-brand-border bg-[#080a14]/80 px-4 py-3 backdrop-blur-xl shadow-sm">
         <div className="mx-auto max-w-lg md:max-w-4xl flex items-center justify-between">
           <BrandHeader />
         </div>
