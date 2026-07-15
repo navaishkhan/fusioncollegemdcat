@@ -152,17 +152,21 @@ export default function StudentDashboard() {
                     <Clock className="w-3.5 h-3.5 text-emerald-400" />
                     <span>Active Assignments</span>
                   </h2>
-                  {filteredAssignments.length > 0 ? (
-                    <div className="max-h-[300px] overflow-y-auto pr-1.5 scrollbar-thin scrollbar-thumb-white/10 space-y-2.5">
-                      {filteredAssignments.map((a) => (
-                        <Card key={a.id} onClick={() => router.push(`/student/tests/${a.id}`)}>
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-start gap-3">
-                              <div className="rounded-xl bg-emerald-500/10 p-2.5 mt-0.5 border border-emerald-500/20">
+                  <Card className="p-0 overflow-hidden border border-white/5 bg-[#0c0e1a]/95 shadow-2xl rounded-3xl">
+                    {filteredAssignments.length > 0 ? (
+                      <div className="max-h-[300px] overflow-y-auto scrollbar-thin scrollbar-thumb-white/10 divide-y divide-white/5">
+                        {filteredAssignments.map((a) => (
+                          <div
+                            key={a.id}
+                            onClick={() => router.push(`/student/tests/${a.id}`)}
+                            className="flex items-center justify-between p-4.5 hover:bg-white/3 transition-colors cursor-pointer group"
+                          >
+                            <div className="flex items-center gap-3">
+                              <div className="rounded-xl bg-emerald-500/10 p-2.5 border border-emerald-500/20 group-hover:bg-emerald-500/20 group-hover:border-emerald-500/30 transition-colors">
                                 <Play className="w-4 h-4 text-emerald-400" />
                               </div>
                               <div>
-                                <h3 className="text-sm font-bold text-white leading-tight">
+                                <h3 className="text-sm font-bold text-white leading-tight group-hover:text-emerald-400 transition-colors">
                                   {a.test_title}
                                 </h3>
                                 <p className="text-[11px] text-slate-500 font-semibold mt-1">
@@ -170,17 +174,18 @@ export default function StudentDashboard() {
                                 </p>
                               </div>
                             </div>
-                            <button className="flex items-center gap-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 px-5 py-2 text-xs font-bold text-emerald-400 hover:bg-emerald-500 hover:text-white transition-all duration-300 shadow-[0_0_15px_rgba(16,185,129,0.15)] hover:shadow-[0_0_20px_rgba(16,185,129,0.4)] cursor-pointer relative overflow-hidden group">
-                              <span className="relative z-10">Begin</span>
-                              <div className="absolute inset-0 bg-gradient-to-r from-emerald-400 to-teal-400 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                            <button className="flex items-center gap-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 px-5 py-2 text-xs font-bold text-emerald-400 hover:bg-emerald-500 hover:text-white transition-all duration-300 shadow-[0_0_15px_rgba(16,185,129,0.15)] group-hover:shadow-[0_0_20px_rgba(16,185,129,0.4)] cursor-pointer">
+                              <span>Begin</span>
                             </button>
                           </div>
-                        </Card>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-xs text-slate-500 italic px-1 py-1">No matching active assignments found.</p>
-                  )}
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="p-6 text-center text-xs text-slate-500 italic">
+                        No matching active assignments found.
+                      </div>
+                    )}
+                  </Card>
                 </motion.div>
               )}
 
@@ -191,17 +196,21 @@ export default function StudentDashboard() {
                     <BookOpen className="w-3.5 h-3.5 text-cyan-400" />
                     <span>Recent Performances</span>
                   </h2>
-                  {filteredAttempts.length > 0 ? (
-                    <div className="max-h-[300px] overflow-y-auto pr-1.5 scrollbar-thin scrollbar-thumb-white/10 space-y-2.5">
-                      {filteredAttempts.map((a) => (
-                        <Card key={a.attempt_id} onClick={() => router.push(`/student/results/${a.attempt_id}`)}>
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-start gap-3">
-                              <div className="rounded-xl bg-cyan-500/10 p-2.5 mt-0.5 border border-cyan-500/20">
+                  <Card className="p-0 overflow-hidden border border-white/5 bg-[#0c0e1a]/95 shadow-2xl rounded-3xl">
+                    {filteredAttempts.length > 0 ? (
+                      <div className="max-h-[300px] overflow-y-auto scrollbar-thin scrollbar-thumb-white/10 divide-y divide-white/5">
+                        {filteredAttempts.map((a) => (
+                          <div
+                            key={a.attempt_id}
+                            onClick={() => router.push(`/student/results/${a.attempt_id}`)}
+                            className="flex items-center justify-between p-4.5 hover:bg-white/3 transition-colors cursor-pointer group"
+                          >
+                            <div className="flex items-center gap-3">
+                              <div className="rounded-xl bg-cyan-500/10 p-2.5 border border-cyan-500/20 group-hover:bg-cyan-500/20 group-hover:border-cyan-500/30 transition-colors">
                                 <Eye className="w-4 h-4 text-cyan-400" />
                               </div>
                               <div>
-                                <h3 className="text-sm font-bold text-white leading-tight">
+                                <h3 className="text-sm font-bold text-white leading-tight group-hover:text-cyan-400 transition-colors">
                                   {a.test_title}
                                 </h3>
                                 <p className="text-[11px] text-slate-500 font-semibold mt-1">
@@ -215,17 +224,18 @@ export default function StudentDashboard() {
                                 </p>
                               </div>
                             </div>
-                            <button className="flex items-center gap-1 rounded-full bg-cyan-500/10 border border-cyan-500/30 px-5 py-2 text-xs font-bold text-cyan-400 hover:bg-cyan-500 hover:text-white transition-all duration-300 shadow-[0_0_15px_rgba(6,182,212,0.15)] hover:shadow-[0_0_20px_rgba(6,182,212,0.4)] cursor-pointer relative overflow-hidden group">
-                              <span className="relative z-10">View</span>
-                              <div className="absolute inset-0 bg-gradient-to-r from-cyan-400 to-blue-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                            <button className="flex items-center gap-1 rounded-full bg-cyan-500/10 border border-cyan-500/30 px-5 py-2 text-xs font-bold text-cyan-400 hover:bg-cyan-500 hover:text-white transition-all duration-300 shadow-[0_0_15px_rgba(6,182,212,0.15)] group-hover:shadow-[0_0_20px_rgba(6,182,212,0.4)] cursor-pointer">
+                              <span>View</span>
                             </button>
                           </div>
-                        </Card>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-xs text-slate-500 italic px-1 py-1">No matching performances found.</p>
-                  )}
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="p-6 text-center text-xs text-slate-500 italic">
+                        No matching performances found.
+                      </div>
+                    )}
+                  </Card>
                 </motion.div>
               )}
 
