@@ -194,7 +194,7 @@ export default function ResultPage({
           )}
 
           <header className="sticky top-0 z-20 border-b border-[#1e223c] bg-[#080a14]/80 px-6 py-4 backdrop-blur-xl">
-            <div className="max-w-7xl flex items-center justify-between">
+            <div className="max-w-[1400px] flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-cyan-500/10 border border-cyan-500/20">
                   <BookOpen className="w-5 h-5 text-cyan-400" />
@@ -219,7 +219,7 @@ export default function ResultPage({
           </header>
 
           <main className="px-6 py-8">
-            <div className="max-w-7xl grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+            <div className="max-w-[1400px] grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
               
               {/* Left/Center Pane: Question and Options */}
               <div className="lg:col-span-8 space-y-6">
@@ -382,7 +382,7 @@ export default function ResultPage({
           </main>
 
           <footer className="fixed bottom-0 left-0 fixed-sidebar-offset right-0 z-30 border-t border-[#1e223c] bg-[#080a14]/90 px-6 py-4.5 backdrop-blur-xl safe-bottom">
-            <div className="max-w-7xl flex items-center justify-between gap-4">
+            <div className="max-w-[1400px] flex items-center justify-between gap-4">
               <motion.button
                 whileTap={{ scale: 0.97 }}
                 onClick={() => navigateTo(Math.max(0, reviewIndex - 1))}
@@ -486,7 +486,7 @@ export default function ResultPage({
       <div className="min-h-screen bg-[#080a14] bg-grid-glow bg-dot-pattern pb-28 safe-top safe-bottom text-slate-100">
         
         <header className="sticky top-0 z-20 border-b border-[#1e223c] bg-[#080a14]/80 px-6 py-4 backdrop-blur-xl">
-          <div className="max-w-7xl flex items-center justify-between">
+          <div className="max-w-[1400px] flex items-center justify-between">
             <h1 className="text-lg font-black text-white tracking-tight uppercase">Result Report</h1>
             <button
               onClick={() => router.push("/student")}
@@ -498,7 +498,7 @@ export default function ResultPage({
           </div>
         </header>
 
-        <main className="max-w-7xl px-6 py-6 md:py-8">
+        <main className="max-w-[1400px] px-6 py-6 md:py-8">
           {pendingManualGrade && (
             <div className="mb-6 rounded-2xl border border-amber-500/30 bg-amber-500/10 p-5 text-center">
               <p className="text-sm font-bold text-amber-400 uppercase tracking-wider">Pending Tutor Grading</p>
