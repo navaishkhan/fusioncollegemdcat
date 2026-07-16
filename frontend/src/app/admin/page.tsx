@@ -474,7 +474,7 @@ export default function AdminDashboard() {
                   <input
                     type="text"
                     value={confirmText}
-                    onChange={(e) => setConfirmText(e.target.value)}
+                    onChange={(e) => setConfirmText(e.target.value.toUpperCase())}
                     placeholder="Type RESET"
                     disabled={resetting}
                     className="w-full rounded-xl bg-white/5 border border-white/10 px-4 py-2.5 text-xs font-mono text-center text-red-400 uppercase tracking-widest focus:outline-none focus:border-red-500/50 transition-all placeholder:normal-case placeholder:font-sans placeholder:tracking-normal"
