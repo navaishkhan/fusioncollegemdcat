@@ -81,6 +81,15 @@ const navItems = [
     glow: "rgba(99,102,241,0.3)",
     textColor: "text-indigo-300",
   },
+  {
+    label: "Reset Platform",
+    icon: AlertTriangle,
+    route: "#",
+    action: "reset",
+    color: "from-red-500 to-rose-600",
+    glow: "rgba(239,68,68,0.35)",
+    textColor: "text-red-300",
+  },
 ];
 
 const containerVariants = {
@@ -187,9 +196,17 @@ export default function AdminDashboard() {
               >
                 {navItems.map((item) => (
                   <motion.button
-                    key={item.route}
+                    key={item.label}
                     variants={itemVariants}
-                    onClick={() => router.push(item.route)}
+                    onClick={() => {
+                      if (item.action === "reset") {
+                        setConfirmText("");
+                        setResetError(null);
+                        setShowResetConfirm(true);
+                      } else {
+                        router.push(item.route);
+                      }
+                    }}
                     className="group relative rounded-2xl border border-white/5 bg-white/3 p-4 text-left hover:border-white/10 hover:bg-white/5 transition-all duration-300 cursor-pointer overflow-hidden"
                     style={{ boxShadow: `0 0 0px ${item.glow}` }}
                     whileHover={{ boxShadow: `0 0 18px ${item.glow}` }}
