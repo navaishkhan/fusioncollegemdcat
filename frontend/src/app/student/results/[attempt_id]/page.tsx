@@ -376,19 +376,19 @@ export default function ResultPage({
             </div>
           </main>
 
-          <footer className="fixed bottom-0 left-0 fixed-sidebar-offset right-0 z-30 border-t border-[#1e223c] bg-[#080a14]/90 px-6 py-4.5 backdrop-blur-xl safe-bottom">
-            <div className="max-w-[1400px] flex items-center justify-between gap-4">
+          <footer className="fixed bottom-0 left-0 fixed-sidebar-offset right-0 z-30 border-t border-[#1e223c] bg-[#080a14]/90 px-4 py-4 backdrop-blur-xl safe-bottom">
+            <div className="mx-auto max-w-[1400px] flex items-center justify-center gap-2.5 sm:gap-5">
               <motion.button
                 whileTap={{ scale: 0.97 }}
                 onClick={() => navigateTo(Math.max(0, reviewIndex - 1))}
                 disabled={reviewIndex === 0}
-                className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-5 py-3.5 text-xs font-bold uppercase tracking-wider text-slate-300 hover:bg-white/8 transition-all disabled:opacity-30 disabled:pointer-events-none cursor-pointer"
+                className="flex items-center gap-1.5 rounded-xl border border-white/10 bg-white/5 px-3.5 sm:px-5 py-3 text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-300 hover:bg-white/8 transition-all disabled:opacity-30 disabled:pointer-events-none cursor-pointer shrink-0"
               >
-                <ChevronLeft className="w-4 h-4" />
+                <ChevronLeft className="w-3.5 h-3.5" />
                 <span>Prev</span>
               </motion.button>
               
-              <div className="text-xs font-black uppercase tracking-widest border border-white/10 px-5 py-2.5 rounded-xl bg-white/2">
+              <div className="text-[10px] sm:text-xs font-black uppercase tracking-wider border border-white/10 px-3 sm:px-5 py-2.5 rounded-xl bg-white/2 shrink-0 text-center">
                 {userCorrect ? (
                   <span className="text-emerald-400">Correct Answer</span>
                 ) : item.is_correct === null ? (
@@ -403,7 +403,7 @@ export default function ResultPage({
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.97 }}
                   onClick={() => setShowReview(false)}
-                  className="rounded-xl bg-gradient-to-r from-cyan-500 to-purple-600 px-6 py-3.5 text-xs font-bold uppercase tracking-wider text-white shadow-lg cursor-pointer"
+                  className="rounded-xl bg-gradient-to-r from-cyan-500 to-purple-600 px-4.5 sm:px-6 py-3 text-[10px] sm:text-xs font-bold uppercase tracking-wider text-white shadow-lg cursor-pointer shrink-0"
                 >
                   Summary Report
                 </motion.button>
@@ -411,10 +411,10 @@ export default function ResultPage({
                 <motion.button
                   whileTap={{ scale: 0.97 }}
                   onClick={() => navigateTo(reviewIndex + 1)}
-                  className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-cyan-500 to-purple-600 px-6 py-3.5 text-xs font-bold uppercase tracking-wider text-white shadow-lg cursor-pointer"
+                  className="flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-cyan-500 to-purple-600 px-4.5 sm:px-6 py-3 text-[10px] sm:text-xs font-bold uppercase tracking-wider text-white shadow-lg cursor-pointer shrink-0"
                 >
                   <span>Next</span>
-                  <ChevronRight className="w-4 h-4" />
+                  <ChevronRight className="w-3.5 h-3.5" />
                 </motion.button>
               )}
             </div>
