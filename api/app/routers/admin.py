@@ -310,6 +310,9 @@ def reset_platform(
         db.query(Question).filter(Question.is_preset.isnot(True)).delete()
         db.query(Batch).delete()
 
+        # Re-assign remaining preset questions to current admin to prevent foreign key violations on user deletion
+        db.query(Question).filter(Question.is_preset == True).update({"created_by_id": current_admin.id})
+
         # Delete all other users except the current admin
         db.query(User).filter(User.id != current_admin.id).delete()
 
