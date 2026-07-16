@@ -221,53 +221,30 @@ export default function AdminDashboard() {
               </motion.div>
             </div>
 
-            {/* Platform Stats Table */}
+            {/* Platform Stats Grid */}
             <div className="space-y-3">
               <h2 className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5 px-1">
                 <Database className="w-3.5 h-3.5 text-violet-400" />
                 <span>Platform Overview</span>
               </h2>
-              <Card className="p-0 overflow-hidden border border-white/5 bg-[#0c0e1a]/95 shadow-2xl rounded-3xl">
-                <div className="divide-y divide-white/5">
-                  {[
-                    { label: "Total Users", value: stats?.total_users, color: "text-cyan-400" },
-                    { label: "Students", value: stats?.total_students, color: "text-emerald-400" },
-                    { label: "Tutors", value: stats?.total_tutors, color: "text-violet-400" },
-                    { label: "Parents", value: stats?.total_parents, color: "text-amber-400" },
-                    { label: "Batches", value: stats?.total_batches, color: "text-rose-400" },
-                    { label: "Total Questions", value: stats?.total_questions, color: "text-indigo-400" },
-                    { label: "Tests", value: stats?.total_tests, color: "text-teal-400" },
-                    { label: "Submissions", value: stats?.total_submissions, color: "text-pink-400" },
-                  ].map((row) => (
-                    <div key={row.label} className="flex items-center justify-between p-4 hover:bg-white/2 transition-colors">
-                      <span className="text-sm text-slate-400">{row.label}</span>
-                      <span className={`text-sm font-black ${row.color}`}>{row.value ?? "—"}</span>
-                    </div>
-                  ))}
-                </div>
-              </Card>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                {[
+                  { label: "Total Users", value: stats?.total_users, color: "text-cyan-400" },
+                  { label: "Students", value: stats?.total_students, color: "text-emerald-400" },
+                  { label: "Tutors", value: stats?.total_tutors, color: "text-violet-400" },
+                  { label: "Parents", value: stats?.total_parents, color: "text-amber-400" },
+                  { label: "Batches", value: stats?.total_batches, color: "text-rose-400" },
+                  { label: "Total Questions", value: stats?.total_questions, color: "text-indigo-400" },
+                  { label: "Tests", value: stats?.total_tests, color: "text-teal-400" },
+                  { label: "Submissions", value: stats?.total_submissions, color: "text-pink-400" },
+                ].map((row) => (
+                  <div key={row.label} className="rounded-2xl border border-white/5 bg-[#0c0e1a]/95 p-3 flex flex-col justify-between min-h-[72px] hover:border-white/10 transition-colors shadow-lg">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">{row.label}</span>
+                    <span className={`text-base font-black mt-1 ${row.color}`}>{row.value ?? "0"}</span>
+                  </div>
+                ))}
+              </div>
             </div>
-
-            {/* Reset Platform Action */}
-            <button
-              onClick={() => {
-                setConfirmText("");
-                setResetError(null);
-                setShowResetConfirm(true);
-              }}
-              className="w-full rounded-full border border-red-500/25 bg-red-500/5 py-3 text-sm font-bold text-red-400 hover:bg-red-500/10 hover:border-red-500/40 transition-all cursor-pointer flex items-center justify-center gap-2 mb-3"
-            >
-              <AlertTriangle className="w-4 h-4 text-red-400" />
-              <span>Reset Platform Data</span>
-            </button>
-
-            {/* Sign out */}
-            <button
-              onClick={() => { clearAuth(); window.location.href = "/login"; }}
-              className="w-full rounded-full border border-red-500/10 bg-red-500/5 py-3 text-sm font-bold text-red-400/80 hover:bg-red-500/10 hover:text-red-400 transition-all cursor-pointer"
-            >
-              Sign Out
-            </button>
           </div>
 
           {/* ── Right Column: Live Neon Stats ── */}
