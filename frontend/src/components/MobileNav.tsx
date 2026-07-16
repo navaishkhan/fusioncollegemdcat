@@ -206,9 +206,16 @@ export default function MobileNav() {
     return null;
   };
 
-  const isActive = (href: string) =>
-    pathname === href ||
-    (href !== "/" && href.length > 1 && pathname?.startsWith(href + "/"));
+  const isActive = (href: string) => {
+    const isDashboard = href === "/tutor" || href === "/admin" || href === "/student" || href === "/parent";
+    if (isDashboard) {
+      return pathname === href;
+    }
+    return (
+      pathname === href ||
+      (href !== "/" && href.length > 1 && pathname?.startsWith(href + "/"))
+    );
+  };
 
   return (
     <>

@@ -189,7 +189,7 @@ export default function QuestionsPage() {
                 : "text-zinc-400 hover:text-zinc-200 border border-transparent"
             }`}
           >
-            All Questions
+            All MCQs
           </button>
           <button
             onClick={() => setSourceFilter("preset")}
@@ -199,7 +199,7 @@ export default function QuestionsPage() {
                 : "text-zinc-400 hover:text-zinc-200 border border-transparent"
             }`}
           >
-            Preset Bank (Already Present)
+            Pre-Built MCQs
           </button>
           <button
             onClick={() => setSourceFilter("tutor")}
@@ -209,7 +209,7 @@ export default function QuestionsPage() {
                 : "text-zinc-400 hover:text-zinc-200 border border-transparent"
             }`}
           >
-            Tutor Added (Teacher Added)
+            Teacher Added
           </button>
         </div>
         {/* Subject Navigation */}
@@ -405,7 +405,7 @@ export default function QuestionsPage() {
                                 <span className="rounded-full bg-purple-500/20 px-2 py-0.5 text-[10px] font-bold uppercase text-purple-300">{q.subject}</span>
                                 <span className="rounded-full bg-white/5 px-2 py-0.5 text-[10px] text-zinc-400">{q.difficulty}</span>
                                 <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase ${q.is_preset ? "bg-amber-500/20 text-amber-300 border border-amber-500/10" : "bg-violet-500/20 text-violet-300 border border-violet-500/10"}`}>
-                                  {q.is_preset ? "Preset Bank" : "Tutor Added"}
+                                  {q.is_preset ? "Pre-Built" : "Teacher Added"}
                                 </span>
                               </div>
                               <p className="text-sm text-zinc-200 line-clamp-3">{q.stem}</p>
