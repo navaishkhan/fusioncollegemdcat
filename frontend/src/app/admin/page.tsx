@@ -254,7 +254,7 @@ export default function AdminDashboard() {
           </div>
 
           {/* ── Right Column: Live Neon Stats ── */}
-          <div className="xl:col-span-4 hidden xl:block space-y-6 lg:sticky lg:top-24">
+          <div className="xl:col-span-4 space-y-6 lg:sticky lg:top-24">
 
             {/* Neon Wave Card */}
             <Card className="relative overflow-hidden border border-white/5 bg-white/3 min-h-[400px] p-6 flex flex-col justify-between shadow-2xl">

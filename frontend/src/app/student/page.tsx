@@ -267,8 +267,8 @@ export default function StudentDashboard() {
             </motion.div>
           </div>
 
-          {/* Right Column: Live Neon Fluid Stats sidebar on desktop */}
-          <div className="xl:col-span-4 hidden xl:block space-y-6 lg:sticky lg:top-24">
+          {/* Right Column: Live Neon Fluid Stats sidebar */}
+          <div className="xl:col-span-4 space-y-6 lg:sticky lg:top-24">
             
             {/* Main Stats Card with Wave Flow */}
             <Card className="relative overflow-hidden border border-white/5 bg-white/3 min-h-[380px] p-6 flex flex-col justify-between shadow-2xl">
