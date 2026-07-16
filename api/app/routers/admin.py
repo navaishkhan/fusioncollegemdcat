@@ -307,7 +307,7 @@ def reset_platform(
         db.query(PasswordResetRequest).delete()
         db.query(TestQuestion).delete()
         db.query(Test).delete()
-        db.query(Question).delete()
+        db.query(Question).filter(Question.is_preset.isnot(True)).delete()
         db.query(Batch).delete()
 
         # Delete all other users except the current admin
