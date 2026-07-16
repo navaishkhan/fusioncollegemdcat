@@ -19,7 +19,11 @@ def ensure_tables():
     global _tables_created
     if not _tables_created:
         try:
-            Base.metadata.create_all(bind=get_engine())
+            engine = get_engine()
+            Base.metadata.create_all(bind=engine)
+            with engine.begin() as conn:
+                from sqlalchemy import text
+                conn.execute(text("ALTER TABLE questions ADD COLUMN IF NOT EXISTS is_preset BOOLEAN DEFAULT FALSE"))
             _tables_created = True
         except Exception:
             pass  # Will retry on next request

@@ -261,6 +261,7 @@ def seed():
                 explanation=f"The correct answer is {correct}. {opts[correct]}",
                 created_by_id=tutor.id,
                 is_active=True,
+                is_preset=True,
             )
             all_questions.append(q)
             q_index += 1

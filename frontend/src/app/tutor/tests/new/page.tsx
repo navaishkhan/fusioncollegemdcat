@@ -12,6 +12,7 @@ interface Question {
   topic: string;
   difficulty: string;
   stem: string;
+  is_preset?: boolean;
 }
 
 const SUBJECTS = ["bio", "chem", "physics", "english", "logical_reasoning"] as const;
@@ -354,6 +355,9 @@ export default function CreateTestPage() {
                           </span>
                           <span className="rounded-full bg-[#0a0c14] px-1.5 py-0.5 text-[9px] text-zinc-400">
                             {q.difficulty}
+                          </span>
+                          <span className={`rounded-full px-1.5 py-0.5 text-[9px] font-bold uppercase ${q.is_preset ? "bg-amber-500/20 text-amber-300" : "bg-cyan-500/20 text-cyan-300"}`}>
+                            {q.is_preset ? "Preset" : "Tutor"}
                           </span>
                         </div>
                         <p className="mt-1 text-xs text-zinc-200 line-clamp-2">{q.stem}</p>

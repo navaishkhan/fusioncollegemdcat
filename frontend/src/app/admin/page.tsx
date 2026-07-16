@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Users,
   BookOpen,
@@ -15,6 +15,7 @@ import {
   ShieldCheck,
   TrendingUp,
   Database,
+  Loader2,
 } from "lucide-react";
 import MobileNav, { AuthGuard } from "@/components/MobileNav";
 import { Card, PageShell, StatPill } from "@/components/Brand";
@@ -97,6 +98,27 @@ export default function AdminDashboard() {
   const user = getStoredUser();
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  // Platform Reset States
+  const [showResetConfirm, setShowResetConfirm] = useState(false);
+  const [confirmText, setConfirmText] = useState("");
+  const [resetting, setResetting] = useState(false);
+  const [resetError, setResetError] = useState<string | null>(null);
+
+  const handleReset = async () => {
+    if (confirmText !== "RESET") return;
+    setResetting(true);
+    setResetError(null);
+    try {
+      await apiFetch("/api/admin/reset", { method: "POST" });
+      clearAuth();
+      window.location.href = "/login";
+    } catch (e) {
+      setResetError(e instanceof Error ? e.message : "Reset failed");
+    } finally {
+      setResetting(false);
+    }
+  };
 
   useEffect(() => {
     apiFetch<AdminStats>("/api/admin/stats")
@@ -208,6 +230,19 @@ export default function AdminDashboard() {
                 </div>
               </Card>
             </div>
+
+            {/* Reset Platform Action */}
+            <button
+              onClick={() => {
+                setConfirmText("");
+                setResetError(null);
+                setShowResetConfirm(true);
+              }}
+              className="w-full rounded-full border border-red-500/25 bg-red-500/5 py-3 text-sm font-bold text-red-400 hover:bg-red-500/10 hover:border-red-500/40 transition-all cursor-pointer flex items-center justify-center gap-2 mb-3"
+            >
+              <AlertTriangle className="w-4 h-4 text-red-400" />
+              <span>Reset Platform Data</span>
+            </button>
 
             {/* Sign out */}
             <button
@@ -384,6 +419,110 @@ export default function AdminDashboard() {
 
           </div>
         </div>
+      {/* Platform Reset Confirmation Modal */}
+      <AnimatePresence>
+        {showResetConfirm && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md p-4"
+          >
+            <motion.div
+              initial={{ scale: 0.95, y: 15, opacity: 0 }}
+              animate={{ scale: 1, y: 0, opacity: 1 }}
+              exit={{ scale: 0.95, y: 15, opacity: 0 }}
+              transition={{ type: "spring", stiffness: 350, damping: 25 }}
+              className="w-full max-w-md rounded-3xl border border-red-500/30 bg-[#0a0c14]/95 p-6 shadow-2xl glossy-border relative overflow-hidden"
+            >
+              {/* Red glow background inside card */}
+              <div className="absolute -top-24 -right-24 w-48 h-48 bg-red-500/10 rounded-full blur-3xl pointer-events-none" />
+
+              <div className="mb-4 flex items-center gap-3">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-red-500/10 border border-red-500/20">
+                  <AlertTriangle className="h-5 w-5 text-red-400" />
+                </div>
+                <div>
+                  <h2 className="text-sm font-black text-white uppercase tracking-wider">Reset Platform Data</h2>
+                  <p className="text-[10px] text-red-400 font-black uppercase tracking-widest mt-0.5">Critical destructive action</p>
+                </div>
+              </div>
+
+              <div className="space-y-3.5 mb-6">
+                <p className="text-xs text-slate-300 leading-relaxed">
+                  This action will <strong className="text-white">permanently delete all database tables and records</strong>:
+                </p>
+                <ul className="text-[11px] text-slate-400 space-y-1 bg-black/30 border border-white/5 rounded-xl p-3.5 leading-normal">
+                  <li className="flex items-center gap-1.5">
+                    <span className="h-1 w-1 bg-red-400 rounded-full" />
+                    <span>All students, tutors, and parent accounts</span>
+                  </li>
+                  <li className="flex items-center gap-1.5">
+                    <span className="h-1 w-1 bg-red-400 rounded-full" />
+                    <span>All mock test attempts, history, and grading records</span>
+                  </li>
+                  <li className="flex items-center gap-1.5">
+                    <span className="h-1 w-1 bg-red-400 rounded-full" />
+                    <span>All batch enrollments and test assignments</span>
+                  </li>
+                  <li className="flex items-center gap-1.5">
+                    <span className="h-1 w-1 bg-red-400 rounded-full" />
+                    <span>All tests and questions (presets and tutor-added)</span>
+                  </li>
+                </ul>
+                <p className="text-xs text-slate-300 leading-relaxed">
+                  Only <strong className="text-white">your admin account</strong> ({user?.email}) will be kept active.
+                </p>
+                <div className="pt-2">
+                  <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider mb-2">
+                    Type <span className="text-red-400 font-extrabold select-all">RESET</span> to confirm:
+                  </p>
+                  <input
+                    type="text"
+                    value={confirmText}
+                    onChange={(e) => setConfirmText(e.target.value)}
+                    placeholder="Type RESET"
+                    disabled={resetting}
+                    className="w-full rounded-xl bg-white/5 border border-white/10 px-4 py-2.5 text-xs font-mono text-center text-red-400 uppercase tracking-widest focus:outline-none focus:border-red-500/50 transition-all placeholder:normal-case placeholder:font-sans placeholder:tracking-normal"
+                  />
+                </div>
+                {resetError && (
+                  <p className="text-[11px] font-semibold text-red-400 bg-red-950/20 border border-red-500/20 rounded-xl px-3 py-2">
+                    {resetError}
+                  </p>
+                )}
+              </div>
+
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => setShowResetConfirm(false)}
+                  disabled={resetting}
+                  className="flex-1 rounded-xl border border-white/10 bg-white/5 py-2.5 text-xs font-bold text-slate-300 hover:bg-white/10 transition-all cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleReset}
+                  disabled={confirmText !== "RESET" || resetting}
+                  className="flex-1 rounded-xl bg-red-600 hover:bg-red-500 disabled:opacity-40 disabled:pointer-events-none py-2.5 text-xs font-bold text-white transition-all cursor-pointer flex items-center justify-center gap-1.5 shadow-[0_0_15px_rgba(239,68,68,0.2)] hover:shadow-[0_0_20px_rgba(239,68,68,0.5)]"
+                >
+                  {resetting ? (
+                    <>
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                      <span>Resetting...</span>
+                    </>
+                  ) : (
+                    <span>Reset Everything</span>
+                  )}
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       </PageShell>
       <MobileNav />
     </AuthGuard>

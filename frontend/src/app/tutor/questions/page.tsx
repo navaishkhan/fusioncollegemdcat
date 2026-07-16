@@ -22,6 +22,7 @@ interface Question {
   };
   correct_option: string;
   explanation?: string;
+  is_preset?: boolean;
 }
 
 const SUBJECTS = ["bio", "chem", "physics", "english", "logical_reasoning"];
@@ -34,6 +35,7 @@ export default function QuestionsPage() {
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [activeTab, setActiveTab] = useState<string>("all");
+  const [sourceFilter, setSourceFilter] = useState<"all" | "preset" | "tutor">("all");
   const [selectedSubTopic, setSelectedSubTopic] = useState<string>("");
   const [flippedId, setFlippedId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -55,6 +57,8 @@ export default function QuestionsPage() {
     const queryParts = [];
     if (subject) queryParts.push(`subject=${subject}`);
     if (debouncedSearch) queryParts.push(`q=${encodeURIComponent(debouncedSearch)}`);
+    if (sourceFilter === "preset") queryParts.push("is_preset=true");
+    if (sourceFilter === "tutor") queryParts.push("is_preset=false");
     if (queryParts.length > 0) {
       url += `?${queryParts.join("&")}`;
     }
@@ -76,7 +80,7 @@ export default function QuestionsPage() {
     fetchQuestions();
     setActiveTab("all");
     setSelectedSubTopic("");
-  }, [subject, debouncedSearch]);
+  }, [subject, debouncedSearch, sourceFilter]);
 
   // Reset sub-topic when tab changes
   useEffect(() => {
@@ -175,6 +179,39 @@ export default function QuestionsPage() {
   return (
     <AuthGuard roles={["admin", "tutor"]}>
       <PageShell title="Question Bank">
+        {/* MCQ Source Tabs */}
+        <div className="mb-5 rounded-2xl bg-white/5 border border-white/10 p-1 flex gap-1">
+          <button
+            onClick={() => setSourceFilter("all")}
+            className={`flex-1 rounded-xl py-2.5 text-center text-xs font-bold transition-all cursor-pointer ${
+              sourceFilter === "all"
+                ? "bg-cyan-500/20 text-cyan-400 border border-cyan-500/20 shadow-lg shadow-cyan-950/20"
+                : "text-zinc-400 hover:text-zinc-200 border border-transparent"
+            }`}
+          >
+            All Questions
+          </button>
+          <button
+            onClick={() => setSourceFilter("preset")}
+            className={`flex-1 rounded-xl py-2.5 text-center text-xs font-bold transition-all cursor-pointer ${
+              sourceFilter === "preset"
+                ? "bg-amber-500/20 text-amber-300 border border-amber-500/20 shadow-lg shadow-amber-950/20"
+                : "text-zinc-400 hover:text-zinc-200 border border-transparent"
+            }`}
+          >
+            Preset Bank (Already Present)
+          </button>
+          <button
+            onClick={() => setSourceFilter("tutor")}
+            className={`flex-1 rounded-xl py-2.5 text-center text-xs font-bold transition-all cursor-pointer ${
+              sourceFilter === "tutor"
+                ? "bg-violet-500/20 text-violet-300 border border-violet-500/20 shadow-lg shadow-violet-950/20"
+                : "text-zinc-400 hover:text-zinc-200 border border-transparent"
+            }`}
+          >
+            Tutor Added (Teacher Added)
+          </button>
+        </div>
         {/* Subject Navigation */}
         <div className="mb-4 flex gap-2 overflow-x-auto pb-1 scrollbar-none">
           <button onClick={() => setSubject("")} className={`shrink-0 rounded-full px-3 py-1.5 text-xs font-semibold cursor-pointer ${!subject ? "bg-cyan-500/20 text-cyan-400" : "bg-white/5 text-zinc-400"}`}>All Subjects</button>
@@ -367,6 +404,9 @@ export default function QuestionsPage() {
                               <div className="mb-2 flex flex-wrap gap-2">
                                 <span className="rounded-full bg-purple-500/20 px-2 py-0.5 text-[10px] font-bold uppercase text-purple-300">{q.subject}</span>
                                 <span className="rounded-full bg-white/5 px-2 py-0.5 text-[10px] text-zinc-400">{q.difficulty}</span>
+                                <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase ${q.is_preset ? "bg-amber-500/20 text-amber-300 border border-amber-500/10" : "bg-violet-500/20 text-violet-300 border border-violet-500/10"}`}>
+                                  {q.is_preset ? "Preset Bank" : "Tutor Added"}
+                                </span>
                               </div>
                               <p className="text-sm text-zinc-200 line-clamp-3">{q.stem}</p>
                               <p className="mt-1 text-xs text-zinc-500">{q.topic}</p>

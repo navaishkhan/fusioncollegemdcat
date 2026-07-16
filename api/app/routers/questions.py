@@ -19,6 +19,7 @@ def list_questions(
     difficulty: Difficulty | None = None,
     past_paper_year: int | None = None,
     q: str | None = Query(default=None, description="Search in stem/topic"),
+    is_preset: bool | None = None,
     db: Session = Depends(get_db),
     _: User = Depends(require_roles(UserRole.ADMIN, UserRole.TUTOR)),
 ):
@@ -33,6 +34,8 @@ def list_questions(
         query = query.filter(Question.past_paper_year == past_paper_year)
     if q:
         query = query.filter(Question.stem.ilike(f"%{q}%"))
+    if is_preset is not None:
+        query = query.filter(Question.is_preset == is_preset)
 
     return query.order_by(Question.created_at.desc()).limit(200).all()
 

@@ -172,8 +172,9 @@ export default function MobileNav() {
     setMenuOpen(false);
   }, [pathname]);
 
-  // Don't show nav on exam pages
+  // Don't show nav on exam and results pages
   if (pathname?.includes("/student/tests/") && pathname !== "/student/tests") return null;
+  if (pathname?.includes("/student/results/")) return null;
 
   const allItems = NAV[user.role] || [];
   const primaryItems = PRIMARY_NAV[user.role] || [];

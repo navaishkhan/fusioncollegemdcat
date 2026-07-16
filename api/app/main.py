@@ -34,3 +34,6 @@ app.include_router(admin.router, prefix="/api")
 def on_startup():
     engine = get_engine()
     Base.metadata.create_all(bind=engine)
+    with engine.begin() as conn:
+        from sqlalchemy import text
+        conn.execute(text("ALTER TABLE questions ADD COLUMN IF NOT EXISTS is_preset BOOLEAN DEFAULT FALSE"))

@@ -57,6 +57,7 @@ class QuestionCreate(BaseModel):
 class QuestionResponse(QuestionCreate):
     id: UUID
     is_active: bool
+    is_preset: bool
 
     model_config = {"from_attributes": True}
 

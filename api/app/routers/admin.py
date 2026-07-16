@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 from app.core.deps import require_roles
 from app.core.security import hash_password
 from app.database import get_db
-from app.models import AttemptAnswer, AttemptStatus, Batch, Enrollment, PasswordResetRequest, Question, Test, TestAssignment, TestAttempt, User, UserRole
+from app.models import AttemptAnswer, AttemptStatus, Batch, Enrollment, PasswordResetRequest, Question, Test, TestAssignment, TestAttempt, User, UserRole, TestQuestion, QuestionReview, PasswordResetToken
 from app.schemas import AdminResetPasswordRequest, AdminUserUpdate, PasswordResetRequestResponse, UserCreate, UserResponse, WeakTopic
 
 router = APIRouter(prefix="/admin", tags=["admin"])
@@ -289,3 +289,32 @@ def score_trends(
         }
         for row in results
     ]
+
+
+@router.post("/reset")
+def reset_platform(
+    db: Session = Depends(get_db),
+    current_admin: User = Depends(require_roles(UserRole.ADMIN)),
+):
+    try:
+        # Delete dependent rows first
+        db.query(AttemptAnswer).delete()
+        db.query(TestAttempt).delete()
+        db.query(TestAssignment).delete()
+        db.query(Enrollment).delete()
+        db.query(QuestionReview).delete()
+        db.query(PasswordResetToken).delete()
+        db.query(PasswordResetRequest).delete()
+        db.query(TestQuestion).delete()
+        db.query(Test).delete()
+        db.query(Question).delete()
+        db.query(Batch).delete()
+
+        # Delete all other users except the current admin
+        db.query(User).filter(User.id != current_admin.id).delete()
+
+        db.commit()
+        return {"status": "ok", "message": "Platform reset complete."}
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Reset failed: {str(e)}")
